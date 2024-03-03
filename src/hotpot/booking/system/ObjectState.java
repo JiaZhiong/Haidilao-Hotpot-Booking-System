@@ -4,13 +4,13 @@ import java.io.*;
 import java.util.ArrayList;
 
 public abstract class ObjectState {
-    static final File savePath = new File("src\\hotpot\\booking\\system\\haidilao.ser");
+    static final File saveFile = new File("src\\hotpot\\booking\\system\\haidilao.ser");
     static ObjectOutputStream objOut = null;
     static ObjectInputStream objIn = null;
     
     final static void saveState(ArrayList<ArrayList<?>> arrList) throws IOException{
         try{
-            objOut = new ObjectOutputStream(new FileOutputStream(savePath));
+            objOut = new ObjectOutputStream(new FileOutputStream(saveFile));
             objOut.writeObject(arrList);
         }catch(IOException e){
             System.out.println("An error occured while attempting to save state");
@@ -20,11 +20,14 @@ public abstract class ObjectState {
         }
     }
     
-    final static ArrayList<ArrayList<Object>> restoreState() throws IOException{
-        ArrayList<ArrayList<Object>> objArr = null;
+    final static ArrayList<ArrayList<?>> restoreState() throws IOException{
+        ArrayList<ArrayList<?>> objArr = null;
+        if(!saveFile.isFile()){
+            return null;
+        }
         try{
-            objIn = new ObjectInputStream(new FileInputStream(savePath));
-            objArr = (ArrayList<ArrayList<Object>>) objIn.readObject();
+            objIn = new ObjectInputStream(new FileInputStream(saveFile));
+            objArr = (ArrayList<ArrayList<?>>) objIn.readObject();
         }catch(IOException | ClassNotFoundException e){
             System.out.println("An error occured while attempting to restore state");
         }finally{
@@ -43,7 +46,16 @@ public abstract class ObjectState {
         return dataState;
     }
     
-    final static void retrieveState() throws IOException{
+    final static void retrieveState(ArrayList<ArrayList<?>> dataRestore, Integer index) throws IOException{
+        if(dataRestore == null){
+            return;
+        }
+        
+        for(ArrayList<?> dataset : dataRestore){
+            int i = 0;
+            
+        }
+        /*  OLD CODE
         ArrayList<ArrayList<Object>> dataRestore = new ArrayList(5); //initialize array for data reading
         ArrayList<ArrayList<?>> dataState = compileArrList(); //get the array lineup
         dataRestore = restoreState();
@@ -51,5 +63,6 @@ public abstract class ObjectState {
         for(ArrayList<?> dataset : dataRestore){
             System.out.println(dataset);
         }
+*/
     }
 }

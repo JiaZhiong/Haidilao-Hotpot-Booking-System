@@ -12,7 +12,7 @@ public class UserMain extends ObjectState{
     
     public static void main(String[] args) throws IOException{
         Scanner input = new Scanner(System.in);
-        retrieveState();
+        retrieveState(restoreState(), null);
         //initObjects();
         //saveState(compileArrList());
         
@@ -106,7 +106,6 @@ public class UserMain extends ObjectState{
                 case "Q", "q" -> {
                     System.out.println("Quitted\n");
                     repeatMain = 0;
-                    saveState(compileArrList());
                 }
                 default -> System.out.println("Sorry. We did not get that... please select your option again\n");
             }
@@ -130,10 +129,10 @@ public class UserMain extends ObjectState{
         Room.availableRooms.add(new Room(12, 475.00));
         Room.availableRooms.add(new Room(8, 350.00));
         Room.availableRooms.add(new Room(5, 120.00));
-        User.bookings.add(new Booking(User.userList.get(0), 0110, false, Menu.menus.get(0), Room.availableRooms.get(0)));
-        User.bookings.add(new Booking(User.userList.get(0), 0110, true, Menu.menus.get(1), Room.availableRooms.get(2)));
-        Room.bookedRooms.add(Room.availableRooms.get(0));
-        Room.bookedRooms.add(Room.availableRooms.get(2));
+        //User.bookings.add(new Booking(User.userList.get(0), 0110, false, Menu.menus.get(0), Room.availableRooms.get(0)));
+        //User.bookings.add(new Booking(User.userList.get(0), 0110, true, Menu.menus.get(1), Room.availableRooms.get(2)));
+        //Room.bookedRooms.add(Room.availableRooms.get(0));
+        //Room.bookedRooms.add(Room.availableRooms.get(2));
     }
             
     private static Boolean checkUserName(String input){
