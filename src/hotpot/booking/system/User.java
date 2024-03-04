@@ -181,7 +181,7 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
         
         int repeat = 1;
         do{
-            sortBooking(this);
+            sortBooking();
             
             this.bookingPayables.forEach(booking -> {
                 System.out.println("\n" + (bookings.indexOf(booking) + 1) + booking.toString(VIEW));
@@ -305,31 +305,32 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
     public void filterBooking(User u) {
         LocalDateTime cal = LocalDateTime.now();
         
-        sortBooking(u);
-        if(this.bookingPayables.isEmpty()){
+        sortBooking();
+        if(bookingPayables.isEmpty()){
             System.out.println("No bookings found for this user. Please make a booking!\n");
             UserMain.repeatMain = 1;
             return;
         }
         
-        int i = 1;
         for(Booking booking: bookingPayables){
             System.out.println("");
-            if(booking.getDueDate().isAfter(cal)){
-                if(bookingPayables.size() == 1){
-                    //check whether overdue booking is 
+            if(cal.isAfter(booking.getDueDate())){
+                System.out.println("\n\t[This booking has passed the due date of payment(!).]");
+                //check whether the list of unpaid bookings will be empty if current booking is the only element
+                if(bookingPayables.size() - 1 >= 1){
+                    Room.bookedRooms.remove(booking.getRoom());
+                    bookings.remove(booking);
+                    System.out.println("Bookings with oustanding balance from \'" + u.getName() + "\':");
+                }else{
+                    booking.toString(FILTER);
+                    
+                    //check whether booking is overdue
                     System.out.println("No bookings found for this user. Please make a booking!\n");
                     UserMain.repeatMain = 1;
                     return;
-                }else{
-                    System.out.println("Bookings with oustanding balance from \'" + u.getName() + "\':");
                 }
-                System.out.println("\n\t[This booking has passed the due date of payment(!).]");
-                Room.bookedRooms.remove(booking.getRoom());
-                bookings.remove(booking);
             }else{
-                System.out.println(i + booking.toString(FILTER));
-                i++;
+                System.out.println((bookingPayables.indexOf(booking) + 1) + booking.toString(FILTER));
             }
         }
         
@@ -361,7 +362,6 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
     
     @Override
     public void viewBooking(User u) {
-        int i = 1;
         ArrayList<Booking> userBookings = new ArrayList();
         
         bookings.forEach((booking) -> {
@@ -370,11 +370,14 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
             }
         });
         
-        System.out.println((!userBookings.isEmpty()) ? "\nBookings from \'" + u.getName() + "\':" : "");
+        System.out.println((!userBookings.isEmpty()) ? "\nBookings from \'" + u.getName() + "\':" : "\nNo bookings found under this user.");
         
         userBookings.forEach((userBooking) -> {
             System.out.println((userBookings.indexOf(userBooking) + 1) + userBooking.toString(VIEW));
         });
+        
+        System.out.println("");
+        UserMain.repeatMain = 1;
     }
     
     public boolean checkRooms(){
@@ -402,10 +405,10 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
         System.out.println("Transfer to " + newUser.getName() + " successful!");
     }
     
-    private void sortBooking(User u){
+    private void sortBooking(){
         bookings.forEach((booking) -> {
             if(booking.getUser().equals(this) && !booking.isPaid()){
-                this.bookingPayables.add(booking);
+                bookingPayables.add(booking);
             }
         });
     }

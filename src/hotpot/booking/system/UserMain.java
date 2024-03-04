@@ -12,9 +12,9 @@ public class UserMain extends ObjectState{
     
     public static void main(String[] args) throws IOException{
         Scanner input = new Scanner(System.in);
-        retrieveState(restoreState(), null);
-        //initObjects();
-        //saveState(compileArrList());
+        //retrieveState(restoreState(), null);
+        initObjects();
+        saveState(compileArrList());
         
         System.out.println("""
                                                         !ATTENTION DEAR USER!
@@ -129,10 +129,10 @@ public class UserMain extends ObjectState{
         Room.availableRooms.add(new Room(12, 475.00));
         Room.availableRooms.add(new Room(8, 350.00));
         Room.availableRooms.add(new Room(5, 120.00));
-        //User.bookings.add(new Booking(User.userList.get(0), 0110, false, Menu.menus.get(0), Room.availableRooms.get(0)));
-        //User.bookings.add(new Booking(User.userList.get(0), 0110, true, Menu.menus.get(1), Room.availableRooms.get(2)));
-        //Room.bookedRooms.add(Room.availableRooms.get(0));
-        //Room.bookedRooms.add(Room.availableRooms.get(2));
+        User.bookings.add(new Booking(User.userList.get(0), 0110, false, Menu.menus.get(0), Room.availableRooms.get(0)));
+        User.bookings.add(new Booking(User.userList.get(0), 0110, true, Menu.menus.get(1), Room.availableRooms.get(1)));
+        Room.bookedRooms.add(Room.availableRooms.get(0));
+        Room.bookedRooms.add(Room.availableRooms.get(2));
     }
             
     private static Boolean checkUserName(String input){
