@@ -1,29 +1,29 @@
 package hotpot.booking.system;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-public class User extends ObjectState implements Serializable, BookingFunctions{
-    private static final long serialVersionUID = 1L;
-    static transient int repeatEditing = 1;
-    static ArrayList<Booking> bookings = new ArrayList<>();
-    static ArrayList<User> userList = new ArrayList<>();
+public class User implements BookingFunctions{
+    static int repeatEditing = 1;
+    static BookingList bookingList = BookingList.getInstance();
+    static UserList userList = UserList.getInstance();
+    static RoomList roomList = RoomList.getInstance();
+    static MenuList menuList = MenuList.getInstance();
     
     //constants for print type
-    static final transient char VIEW = 'v';
-    static final transient char FILTER = 'f';
+    static final char VIEW = 'v';
+    static final char FILTER = 'f';
     
     //constants for exiting operations
-    static final transient int DEFAULT_SELECT = -1;
+    static final int DEFAULT_SELECT = -1;
     
-    static final transient Scanner input = new Scanner(System.in);
+    static final Scanner input = new Scanner(System.in);
     private String name = "User";
     ArrayList<Booking> bookingPayables = new ArrayList(); //array to store bookings that are not paid
     
+    //constructor
     public User(String username){
         this.name = username;
     }
@@ -46,10 +46,7 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
         int repeat = 1;
         
         //check whether there are available rooms
-        boolean roomStatus = checkRooms();
-        if(!roomStatus){
-            System.out.println("There are no available rooms for now. Please contact us for more details.\n");
-            UserMain.repeatMain = 1;
+        if(!roomList.compare()){
             return;
         }
         
@@ -63,8 +60,8 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
                 try{
                     //print menus with index
                     System.out.println("Index\t Menu Name\t Price");
-                    Menu.menus.forEach((menu) -> {
-                        System.out.printf((Menu.menus.indexOf(menu) + 1) + ".\t " + menu.getMenuName() + "\t RM%.2f" + "\n", menu.getBasePrice());
+                    menuList.menus.forEach((menu) -> {
+                        System.out.printf((menuList.menus.indexOf(menu) + 1) + ".\t " + menu.getMenuName() + "\t RM%.2f" + "\n", menu.getBasePrice());
                     });
                     
                     select = input.nextInt() - 1;
@@ -79,8 +76,8 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
                 }
             }
             
-            for(Menu menu: Menu.menus){
-                if(select == Menu.menus.indexOf(menu)){
+            for(Menu menu: menuList.menus){
+                if(select == menuList.menus.indexOf(menu)){
                     menuObj = menu;
                     repeat = 0;
                 }
@@ -92,27 +89,18 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
         
         //USER INPUT FOR ROOM PACKAGE
         do{
-            try{
-                for(Room room: Room.availableRooms){
-                    Room.bookedRooms.forEach((booked) -> {
-                        Room.availableRooms.remove(booked);
-                    });
-                }
-            }catch(ConcurrentModificationException e){
-                repeat = 0;
-                System.out.println("There are no available rooms for now. Please contact us for more details.\n");
-                UserMain.repeatMain = 1;
+            if(!roomList.compare()){
                 return;
             }
             
             int select = DEFAULT_SELECT;
-             while(select < UserMain.CANCEL_INT){
+            while(select < UserMain.CANCEL_INT){
                 try{
                     //print menus with index
                     System.out.println("Index\t Room Number\t Capacity\t Price");
                     
-                    Room.availableRooms.forEach((room) -> {
-                        System.out.printf((Room.availableRooms.indexOf(room) + 1) + ".\t " + room.getRoomNumber() + "\t\t " + room.getPax() + "\t\t RM%.2f" + "\n", room.getBasePrice());
+                    roomList.availableRooms.forEach((room) -> {
+                        System.out.printf((roomList.availableRooms.indexOf(room) + 1) + ".\t " + room.getRoomNumber() + "\t\t " + room.getPax() + "\t\t RM%.2f" + "\n", room.getBasePrice());
                     });
                     
                     select = input.nextInt() - 1;
@@ -126,14 +114,15 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
                 }
             }
             
-            for(Room room: Room.availableRooms){                
-                if(select == Room.availableRooms.indexOf(room)){
-                    roomSelect = room.getRoomNumber();
+            for(Room room: roomList.availableRooms){                
+                if(select == roomList.availableRooms.indexOf(room)){
                     roomObj = room;
-                    Room.bookedRooms.add(room);
                     repeat = 0;
+                    break;
                 }
             }
+            roomList.book(roomList.availableRooms.get(select));
+            
             
             if(roomSelect == -1){
                 System.out.println("\nPlease enter a valid room package listed below: ");
@@ -169,7 +158,7 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
         
 
         //add booking to the global booking list
-        bookings.add(new Booking(this, roomSelect, paySelect, menuObj, roomObj));
+        bookingList.record(new Booking(this, paySelect, menuObj, roomObj));
         
         System.out.println("\nBooking Successfully Placed! You can view bookings to confirm the due date of payment if you chose to pay later>\nHave a nice day!\n");
         UserMain.repeatMain = 1;
@@ -184,7 +173,7 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
             sortBooking();
             
             this.bookingPayables.forEach(booking -> {
-                System.out.println("\n" + (bookings.indexOf(booking) + 1) + booking.toString(VIEW));
+                System.out.println("\n" + (bookingList.bookings.indexOf(booking) + 1) + booking.toString(VIEW));
             });
 
             int bookingSelect = User.DEFAULT_SELECT;
@@ -199,7 +188,7 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
             }
             
             for(Booking booking : this.bookingPayables){
-                if(bookingSelect == bookings.indexOf(booking)){
+                if(bookingSelect == bookingList.bookings.indexOf(booking)){
                     selectedBooking = booking;
                     repeat = 0;
                 }
@@ -296,7 +285,9 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
             }
         }while(repeatConfirm);
         
-        bookings.remove(b);
+        bookingList.drop(b);
+        roomList.drop(b.getRoom());
+        
         System.out.println("Booking Successfully Cancelled!");
         UserMain.repeatMain = 1;
     }
@@ -307,7 +298,7 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
         
         sortBooking();
         if(bookingPayables.isEmpty()){
-            System.out.println("No bookings found for this user. Please make a booking!\n");
+            System.out.println("No bookings due for payment found for this user. Please make a booking!\n");
             UserMain.repeatMain = 1;
             return;
         }
@@ -318,8 +309,8 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
                 System.out.println("\n\t[This booking has passed the due date of payment(!).]");
                 //check whether the list of unpaid bookings will be empty if current booking is the only element
                 if(bookingPayables.size() - 1 >= 1){
-                    Room.bookedRooms.remove(booking.getRoom());
-                    bookings.remove(booking);
+                    roomList.free(booking.getRoom());
+                    bookingList.drop(booking);
                     System.out.println("Bookings with oustanding balance from \'" + u.getName() + "\':");
                 }else{
                     booking.toString(FILTER);
@@ -352,19 +343,22 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
             }
         }
         
-        for(Booking booking : bookings){
-            if(select == bookings.indexOf(booking)){
+        for(Booking booking : bookingList.bookings){
+            if(select == bookingList.bookings.indexOf(booking)){
                 System.out.printf("Paid RM%.2f. Thank you cooperating by paying before the due date!\n", BookingFunctions.payBooking(booking.getMenu(), booking.getRoom()));
                 booking.setPaid(true);
             }
         }
+        
+        UserMain.repeatMain = 1;
+        System.out.println("");
     }
     
     @Override
     public void viewBooking(User u) {
         ArrayList<Booking> userBookings = new ArrayList();
         
-        bookings.forEach((booking) -> {
+        bookingList.bookings.forEach((booking) -> {
             if(booking.getUser().equals(this)){
                 userBookings.add(booking);
             }
@@ -380,19 +374,6 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
         UserMain.repeatMain = 1;
     }
     
-    public boolean checkRooms(){
-        try{
-            for(Room room: Room.availableRooms){
-                Room.bookedRooms.forEach((booked) -> {
-                    Room.availableRooms.remove(booked);
-                });
-            }
-            return true;
-        }catch(ConcurrentModificationException e){
-            return false;
-        }
-    }
-    
     private void transferBooking(User oldUser, User newUser, Booking bookingTransfer){
         if(bookingTransfer != null){
             bookingTransfer.setUser(newUser);
@@ -405,19 +386,22 @@ public class User extends ObjectState implements Serializable, BookingFunctions{
         System.out.println("Transfer to " + newUser.getName() + " successful!");
     }
     
-    private void sortBooking(){
-        bookings.forEach((booking) -> {
+    private ArrayList<Booking> sortBooking(){
+        bookingPayables.clear();
+        bookingList.bookings.forEach((booking) -> {
             if(booking.getUser().equals(this) && !booking.isPaid()){
                 bookingPayables.add(booking);
             }
         });
+        
+        return bookingPayables;
     }
     
     private User verifyUser(){
         int repeat = 1;
         while(repeat == 1){
             String userInput = input.next();
-            for(User selectedUser: userList){
+            for(User selectedUser: userList.users){
                 if(selectedUser.getName().equals(userInput)){
                     repeatEditing = 0;
                     return selectedUser;

@@ -1,20 +1,20 @@
 package hotpot.booking.system;
 
-import java.io.IOException;
 import java.util.Scanner;
 
-public class UserMain extends ObjectState{
+public class UserMain{
     static String userInput, userOption; //userInput for general user input while userOption for selecting options
     static int repeatMain = 1;
     static final String CANCEL_STR = "HAIDILAO";
     static final int CANCEL_INT = 0;
+    static UserList userList = UserList.getInstance();
+    static RoomList roomList = RoomList.getInstance();
+    static BookingList bookingList = BookingList.getInstance();
+    static MenuList menuList = MenuList.getInstance();
     
-    
-    public static void main(String[] args) throws IOException{
+    public static void main(String[] args){
         Scanner input = new Scanner(System.in);
-        //retrieveState(restoreState(), null);
         initObjects();
-        saveState(compileArrList());
         
         System.out.println("""
                                                         !ATTENTION DEAR USER!
@@ -42,11 +42,9 @@ public class UserMain extends ObjectState{
                     if(valid == null){
                         System.out.println("User registered failed!\n");
                     }else{
-                        User.userList.add(new User(userInput));
+                        userList.add(new User(userInput));
                         System.out.println("User registered sucessfully!\n");
                     }
-                    
-                    saveState(compileArrList());
                 }
                 case "2" -> {
                     System.out.println("Select a user [Enter a registered user name (case-sensitive)]: ");
@@ -58,7 +56,7 @@ public class UserMain extends ObjectState{
                     User selectedUser = verifyUser();
                     if(selectedUser != null){
                         selectedUser.addBooking(selectedUser);
-                        saveState(compileArrList());
+                        
                     }
                 }
                 case "3" -> {
@@ -71,7 +69,7 @@ public class UserMain extends ObjectState{
                     User selectedUser = verifyUser();
                     if(selectedUser != null){
                         selectedUser.filterBooking(selectedUser);
-                        saveState(compileArrList());
+                        
                     }
                 }
                 case "4" -> {
@@ -84,7 +82,7 @@ public class UserMain extends ObjectState{
                     User selectedUser = verifyUser();
                     if(selectedUser != null){
                         selectedUser.viewBooking(selectedUser);
-                        saveState(compileArrList());
+                        
                     }
                 }
                 case "5" -> {
@@ -97,7 +95,7 @@ public class UserMain extends ObjectState{
                     User selectedUser = verifyUser();
                     if(selectedUser != null){
                         selectedUser.editBooking(selectedUser);
-                        saveState(compileArrList());
+                        
                     }
                 }
                 case "6" -> {
@@ -122,21 +120,21 @@ public class UserMain extends ObjectState{
         4. Bookings
         5. Booked Rooms
         */
-        User.userList.add(new User("jer"));
-        User.userList.add(new User("coll"));
-        Menu.menus.add(new Menu("Seafood", 200.00));
-        Menu.menus.add(new Menu("Vegetarian", 150.00));
-        Room.availableRooms.add(new Room(12, 475.00));
-        Room.availableRooms.add(new Room(8, 350.00));
-        Room.availableRooms.add(new Room(5, 120.00));
-        User.bookings.add(new Booking(User.userList.get(0), 0110, false, Menu.menus.get(0), Room.availableRooms.get(0)));
-        User.bookings.add(new Booking(User.userList.get(0), 0110, true, Menu.menus.get(1), Room.availableRooms.get(1)));
-        Room.bookedRooms.add(Room.availableRooms.get(0));
-        Room.bookedRooms.add(Room.availableRooms.get(2));
+        userList.add(new User("jer"));
+        userList.add(new User("coll"));
+        menuList.record(new Menu("Seafood", 200.00));
+        menuList.record(new Menu("Vegetarian", 150.00));
+        roomList.open(new Room(12, 475.00));
+        roomList.open(new Room(8, 350.00));
+        roomList.open(new Room(5, 120.00));
+        bookingList.record(new Booking(userList.users.get(0), false, menuList.menus.get(0), roomList.availableRooms.get(0)));
+        bookingList.record(new Booking(userList.users.get(0), true, menuList.menus.get(1), roomList.availableRooms.get(1)));
+        roomList.bookedRooms.add(roomList.availableRooms.get(0));
+        roomList.bookedRooms.add(roomList.availableRooms.get(2));
     }
             
     private static Boolean checkUserName(String input){
-        for(User user: User.userList){
+        for(User user: User.userList.users){
             if(input.matches("^(?=[a-zA-Z0-9._]{3,20}$)(?!.*[_.]{2})[^_.].*[^_.]$")){
                 if(!input.equals(user.getName())){
                     if(input.equalsIgnoreCase("Haidilao")){
@@ -158,7 +156,7 @@ public class UserMain extends ObjectState{
     private static User verifyUser(){
         int repeat = 1;
         while(repeat == 1){
-            for(User selectedUser: User.userList){
+            for(User selectedUser: userList.users){
                 if(selectedUser.getName().equals(userInput)){
                     repeatMain = 0;
                     return selectedUser;

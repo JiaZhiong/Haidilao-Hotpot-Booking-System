@@ -1,13 +1,9 @@
 package hotpot.booking.system;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Menu extends Package{
-    private static final long serialVersionUID = 1L;
-    
     private String menuName;
-    static ArrayList<Menu> menus = new ArrayList<>();
     ArrayList<String> item = new ArrayList<>();
     
     public Menu(String menuName, double basePrice){

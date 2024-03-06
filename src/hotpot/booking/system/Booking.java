@@ -1,14 +1,14 @@
 package hotpot.booking.system;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-public class Booking extends ObjectState implements Serializable{
-    private static final long serialVersionUID = 1L;
-    static final transient Scanner input = new Scanner(System.in);
+public class Booking{
+    static final Scanner input = new Scanner(System.in);
+    static RoomList roomList = RoomList.getInstance();
+    static MenuList menuList = MenuList.getInstance();
     
     private String menuPkg;
     private int roomNumber;
@@ -20,13 +20,13 @@ public class Booking extends ObjectState implements Serializable{
     private LocalDateTime dueDateTime; //due date for user to pay
     private String bookedDateTimeStr, dueDateTimeStr; //string versions of the calendar objects
     
-    public Booking(User u, int roomPkg, boolean paid, Menu m, Room r){
+    public Booking(User u, boolean p, Menu m, Room r){
         this.menu = m;
         this.room = r;
         this.user = u;
         this.menuPkg = getMenuPkgName(this.menu);
-        this.roomNumber = roomPkg;
-        this.paid = paid;
+        this.roomNumber = r.getRoomNumber();
+        this.paid = p;
         this.bookedDateTime = LocalDateTime.now();
         this.dueDateTime = calculateDatePayment(bookedDateTime);
         this.bookedDateTimeStr = toStringDate(bookedDateTime);
@@ -62,7 +62,7 @@ public class Booking extends ObjectState implements Serializable{
                 try{
                     //print menus with index
                     System.out.println("Enter a number 0 or lesser to exit to Editing Menu\nSelect a new menu package: \nIndex\t Menu Name\t Price");
-                    for(Menu menuBooking : Menu.menus){
+                    for(Menu menuBooking : menuList.menus){
                         if(this.menu != menuBooking){
                             System.out.printf(i + ".\t " + menuBooking.getMenuName() + " \t RM%.2f" + "\n", menuBooking.getBasePrice());
                             i++;
@@ -81,8 +81,8 @@ public class Booking extends ObjectState implements Serializable{
                 }
             }
             
-            for(Menu menuBooking: Menu.menus){
-                if(select == Menu.menus.indexOf(menuBooking)){
+            for(Menu menuBooking: menuList.menus){
+                if(select == menuList.menus.indexOf(menuBooking)){
                     this.menu = menuBooking;
                     this.menuPkg = menuBooking.getMenuName();
                     repeat = 0;
@@ -99,10 +99,7 @@ public class Booking extends ObjectState implements Serializable{
         Room newRoom = null;
         
         do{
-            boolean roomStatus = u.checkRooms();
-            if(!roomStatus){
-                System.out.println("There are no other available rooms for now. Please retry or contact us for more details.\n");
-                UserMain.repeatMain = 1;
+            if(!roomList.compare()){
                 return;
             }
             
@@ -114,7 +111,7 @@ public class Booking extends ObjectState implements Serializable{
                     //print menus with index
                     System.out.println("(Enter a number 0 or lesser to exit to main)\n\nIndex\t Room Number\t Capacity\t Price");
                     
-                    for(Room roomBooking : Room.availableRooms){
+                    for(Room roomBooking : roomList.availableRooms){
                         if(this.room != roomBooking){
                             System.out.printf(i + ".\t " + roomBooking.getRoomNumber() + "\t\t " + roomBooking.getPax() + "\t\t RM%.2f" + "\n", roomBooking.getBasePrice());
                             i++;
@@ -132,11 +129,10 @@ public class Booking extends ObjectState implements Serializable{
                 }
             }
             
-            Room.bookedRooms.remove(this.room);
-            Room.availableRooms.add(this.room);
+            roomList.drop(room);
             
-            for(Room roomBooking : Room.availableRooms){
-                if(select == Room.availableRooms.indexOf(roomBooking)){
+            for(Room roomBooking : roomList.availableRooms){
+                if(select == roomList.availableRooms.indexOf(roomBooking)){
                     this.room = roomBooking;
                     this.roomNumber = roomBooking.getRoomNumber();
                     newRoom = roomBooking;
@@ -146,8 +142,7 @@ public class Booking extends ObjectState implements Serializable{
             
         }while(repeat == 1);
         
-        Room.availableRooms.remove(newRoom);
-        Room.bookedRooms.add(newRoom);
+        roomList.book(newRoom);
         
         User.repeatEditing = 1;
     }
