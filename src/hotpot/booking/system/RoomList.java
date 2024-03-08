@@ -8,7 +8,7 @@ import java.util.List;
  *
  * @author HP
  */
-public class RoomList {
+public class RoomList implements JsonState{
     List<Room> availableRooms;
     List<Room> bookedRooms;
     
@@ -60,5 +60,15 @@ public class RoomList {
             return false;
         }
         return true;
+    }
+    
+    @Override
+    public void serialize() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void deserialize() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

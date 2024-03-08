@@ -1,5 +1,6 @@
 package hotpot.booking.system;
 
+import com.fasterxml.jackson.annotation.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
@@ -7,10 +8,21 @@ import java.util.Scanner;
 
 public class User implements BookingFunctions{
     static int repeatEditing = 1;
+    
+    @JsonManagedReference
     static BookingList bookingList = BookingList.getInstance();
+    @JsonManagedReference
     static UserList userList = UserList.getInstance();
+    @JsonManagedReference
     static RoomList roomList = RoomList.getInstance();
+    @JsonManagedReference
     static MenuList menuList = MenuList.getInstance();
+    
+    //constants for seat layout
+    final static int ROWS = 10;
+    final static int COLS = 12;
+    final static char OCCU = 'X';
+    final static char FREE = '*';
     
     //constants for print type
     static final char VIEW = 'v';
@@ -18,6 +30,7 @@ public class User implements BookingFunctions{
     
     //constants for exiting operations
     static final int DEFAULT_SELECT = -1;
+    static private char[][] seatLayout = new char[ROWS][COLS];
     
     static final Scanner input = new Scanner(System.in);
     private String name = "User";
@@ -35,6 +48,7 @@ public class User implements BookingFunctions{
     @Override
     public void addBooking(User u) {
         //user selections
+        String seatSelect = null;
         int roomSelect = -1;
         Boolean paySelect = false;
         
@@ -50,7 +64,45 @@ public class User implements BookingFunctions{
             return;
         }
         
-        System.out.println("Enter a number 0 or lesser to exit to main\nSelect a menu package (via number)");
+        //USER INPUT FOR SEAT SELECTION
+        do{
+            char rowSelect = Character.MIN_VALUE;
+            int colSelect = -1;
+            
+            fillArrayDefaultVal();
+            displaySeatLayout();
+            try{
+                do{
+                    System.out.println("Please select row [A-J]: ");
+                    rowSelect = Character.toLowerCase(input.next().charAt(0));
+                    if(rowSelect == '0'){
+                        UserMain.repeatMain = 1;
+                        return;
+                    }
+                }while(rowSelect < 'a' || rowSelect > 'j');
+                
+                do{
+                    System.out.println("Please select column [1-12]: ");
+                    colSelect = input.nextInt() - 1;
+                    if(colSelect < UserMain.CANCEL_INT){
+                        UserMain.repeatMain = 1;
+                        return;
+                    }
+                }while(colSelect < 0 || colSelect > 11 );
+            }catch(InputMismatchException e){
+                System.out.println("\nInput not recognized as seat selection. Please enter again:");
+                input.nextLine();
+            }
+            
+            String select = String.valueOf(rowSelect); //convert char to string
+            select = select.concat(Integer.toString(colSelect)); //convert integer to string
+
+            seatSelect = verifySeat(select);
+            repeat = (seatSelect == null) ? 1 : 0;
+        }while(repeat == 1);
+        
+        
+        System.out.println("\nEnter a number 0 or lesser to exit to main\nSelect a menu package (via number)");
         
         //USER INPUT FOR MENU PACKAGE
         do{
@@ -66,7 +118,6 @@ public class User implements BookingFunctions{
                     
                     select = input.nextInt() - 1;
                     if(select < UserMain.CANCEL_INT){
-                        System.out.println("1");
                         UserMain.repeatMain = 1;
                         return;
                     }
@@ -158,7 +209,7 @@ public class User implements BookingFunctions{
         
 
         //add booking to the global booking list
-        bookingList.record(new Booking(this, paySelect, menuObj, roomObj));
+        bookingList.record(new Booking(this, seatSelect, paySelect, menuObj, roomObj));
         
         System.out.println("\nBooking Successfully Placed! You can view bookings to confirm the due date of payment if you chose to pay later>\nHave a nice day!\n");
         UserMain.repeatMain = 1;
@@ -411,5 +462,134 @@ public class User implements BookingFunctions{
         }
         System.out.println("Could not find user\nPlease re-enter user name: ");
         return null;
+    }
+    
+    private void displaySeatLayout(){
+        System.out.println("\n   1  2  3   4  5  6    7  8  9  10 11 12");
+        for (int i = 0; i < seatLayout.length; i++) {
+            for (int j = 0; j < seatLayout[0].length; j++) {
+                if(i%2 == 0 && j == 0){
+                    System.out.print((i == 0) ? getRowLetter(i) + " [" + seatLayout[i][j] + "]" : "\n" + getRowLetter(i) + " [" + seatLayout[i][j] + "]");
+                }else if(j != COLS){
+                    if((j + 1) == COLS){
+                        System.out.print("[" + seatLayout[i][j] + "]\n");
+                    }else if(j == 0){
+                        System.out.print(getRowLetter(i) + " [" + seatLayout[i][j] + "]");
+                        //System.out.print(i + "  [" + FREE + "]");
+                    }else if((j + 1) % 3 == 0){
+                        System.out.print((j == 5) ? "[" + seatLayout[i][j] + "]  " : "[" + seatLayout[i][j] + "] ");
+                    }else{
+                        System.out.print("[" + seatLayout[i][j] + "]");
+                    }
+                }
+            }
+        }
+        
+        System.out.println("\n* - unoccupied seat | X - occupied seat");
+    }
+    
+    private String verifySeat(String seat){
+        if(!seat.matches("[a-j]{1}[0-9]{1,2}$")){
+            System.out.println("Seat number is invalid. Please enter another seat");
+            return null;
+        }
+        
+        int rowInt = getRowNumber(Character.toString(seat.charAt(0)));
+        int colInt = Integer.parseInt(seat.substring(1));
+        
+        if(seatLayout[rowInt][colInt] == OCCU){
+            System.out.println("\nThis seat is occupied! Please select another");
+            return null;
+        }
+        
+        return seat;
+    }
+    
+    private void fillArrayDefaultVal(){
+        for(int i = 0; i < seatLayout.length; i++){
+            for(int j = 0; j < seatLayout[i].length; j++){
+                if(seatLayout[i][j] == 0){
+                    seatLayout[i][j] = FREE;
+                }else{
+                    //leave value as it is
+                }
+            }
+        }
+    }
+    
+    private String getRowLetter(int i){
+        switch(i){
+            case 0 -> {
+                return "A";
+            }
+            case 1 -> {
+                return "B";
+            }
+            case 2 -> {
+                return "C";
+            }
+            case 3 -> {
+                return "D";
+            }
+            case 4 -> {
+                return "E";
+            }
+            case 5 -> {
+                return "F";
+            }
+            case 6 -> {
+                return "G";
+            }
+            case 7 -> {
+                return "H";
+            }
+            case 8 -> {
+                return "I";
+            }
+            case 9 -> {
+                return "J";
+            }
+            default ->{
+                return null;
+            }
+        }
+    }
+    
+    private int getRowNumber(String s){
+        switch(s){
+            case "a" -> {
+                return 0;
+            }
+            case "b" -> {
+                return 1;
+            }
+            case "c" -> {
+                return 2;
+            }
+            case "d" -> {
+                return 3;
+            }
+            case "e" -> {
+                return 4;
+            }
+            case "f" -> {
+                return 5;
+            }
+            case "g" -> {
+                return 6;
+            }
+            case "h" -> {
+                return 7;
+            }
+            case "i" -> {
+                return 8;
+            }
+            case "j" -> {
+                return 9;
+            }
+            default ->{
+                return -1;
+            }
+        }
     }
 }

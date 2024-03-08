@@ -10,8 +10,10 @@ public class Booking{
     static RoomList roomList = RoomList.getInstance();
     static MenuList menuList = MenuList.getInstance();
     
+    private String seatId;
     private String menuPkg;
     private int roomNumber;
+    private int seatNumber;
     private boolean paid = false;
     private User user;
     private Menu menu;
@@ -20,7 +22,7 @@ public class Booking{
     private LocalDateTime dueDateTime; //due date for user to pay
     private String bookedDateTimeStr, dueDateTimeStr; //string versions of the calendar objects
     
-    public Booking(User u, boolean p, Menu m, Room r){
+    public Booking(User u, String seatId, boolean p, Menu m, Room r){
         this.menu = m;
         this.room = r;
         this.user = u;

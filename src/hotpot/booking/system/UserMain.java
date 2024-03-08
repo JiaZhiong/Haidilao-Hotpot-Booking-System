@@ -3,6 +3,7 @@ package hotpot.booking.system;
 import java.util.Scanner;
 
 public class UserMain{
+    static Scanner input = new Scanner(System.in);
     static String userInput, userOption; //userInput for general user input while userOption for selecting options
     static int repeatMain = 1;
     static final String CANCEL_STR = "HAIDILAO";
@@ -13,7 +14,6 @@ public class UserMain{
     static MenuList menuList = MenuList.getInstance();
     
     public static void main(String[] args){
-        Scanner input = new Scanner(System.in);
         initObjects();
         
         System.out.println("""
@@ -127,10 +127,10 @@ public class UserMain{
         roomList.open(new Room(12, 475.00));
         roomList.open(new Room(8, 350.00));
         roomList.open(new Room(5, 120.00));
-        bookingList.record(new Booking(userList.users.get(0), false, menuList.menus.get(0), roomList.availableRooms.get(0)));
-        bookingList.record(new Booking(userList.users.get(0), true, menuList.menus.get(1), roomList.availableRooms.get(1)));
-        roomList.bookedRooms.add(roomList.availableRooms.get(0));
-        roomList.bookedRooms.add(roomList.availableRooms.get(2));
+        //bookingList.record(new Booking(userList.users.get(0), false, menuList.menus.get(0), roomList.availableRooms.get(0)));
+        //bookingList.record(new Booking(userList.users.get(0), true, menuList.menus.get(1), roomList.availableRooms.get(1)));
+        //roomList.bookedRooms.add(roomList.availableRooms.get(0));
+        //roomList.bookedRooms.add(roomList.availableRooms.get(2));
     }
             
     private static Boolean checkUserName(String input){

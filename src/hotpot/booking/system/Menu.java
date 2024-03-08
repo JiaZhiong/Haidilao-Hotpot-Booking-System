@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Menu extends Package{
     private String menuName;
-    ArrayList<String> item = new ArrayList<>();
+    ArrayList<Item> item = new ArrayList<>();
     
     public Menu(String menuName, double basePrice){
         this.menuName = menuName;
@@ -23,11 +23,11 @@ public class Menu extends Package{
         this.menuName = menuName;
     }
     
-    public void addItem(){
-        
+    public void addItem(Item i){
+        item.add(i);
     }
     
-    public void removeItem(){
-        
+    public void removeItem(Item i){
+        item.remove(i);
     }
 }
