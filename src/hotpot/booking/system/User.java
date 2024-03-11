@@ -49,7 +49,6 @@ public class User implements BookingFunctions{
     public void addBooking(User u) {
         //user selections
         String seatSelect = null;
-        int roomSelect = -1;
         Boolean paySelect = false;
         
         //store objects of selection
@@ -60,7 +59,7 @@ public class User implements BookingFunctions{
         int repeat = 1;
         
         //check whether there are available rooms
-        if(!roomList.compare()){
+        if(!roomList.compare() || !roomList.checkAvailable()){
             return;
         }
         
@@ -140,7 +139,7 @@ public class User implements BookingFunctions{
         
         //USER INPUT FOR ROOM PACKAGE
         do{
-            if(!roomList.compare()){
+            if(!roomList.compare() || !roomList.checkAvailable()){
                 return;
             }
             
@@ -174,10 +173,6 @@ public class User implements BookingFunctions{
             }
             roomList.book(roomList.availableRooms.get(select));
             
-            
-            if(roomSelect == -1){
-                System.out.println("\nPlease enter a valid room package listed below: ");
-            }
         }while(repeat == 1);
         
         repeat = 1;
@@ -435,6 +430,7 @@ public class User implements BookingFunctions{
         }
         
         System.out.println("Transfer to " + newUser.getName() + " successful!");
+        UserMain.repeatMain = 1;
     }
     
     private ArrayList<Booking> sortBooking(){
@@ -502,6 +498,7 @@ public class User implements BookingFunctions{
             return null;
         }
         
+        seatLayout[rowInt][colInt] = OCCU;
         return seat;
     }
     

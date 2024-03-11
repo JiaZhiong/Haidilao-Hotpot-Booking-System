@@ -62,6 +62,15 @@ public class RoomList implements JsonState{
         return true;
     }
     
+    public boolean checkAvailable(){
+        if(availableRooms.isEmpty()){
+            System.out.println("All rooms have been currently booked. Please contact us for more details or retry again later\n");
+            UserMain.repeatMain = 1;
+            return false;
+        }
+        return true;
+    }
+    
     @Override
     public void serialize() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody

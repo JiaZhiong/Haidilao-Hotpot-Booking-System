@@ -101,7 +101,7 @@ public class Booking{
         Room newRoom = null;
         
         do{
-            if(!roomList.compare()){
+            if(!roomList.compare() || !roomList.checkAvailable()){
                 return;
             }
             

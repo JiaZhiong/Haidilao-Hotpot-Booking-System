@@ -126,7 +126,7 @@ public class UserMain{
         menuList.record(new Menu("Vegetarian", 150.00));
         roomList.open(new Room(12, 475.00));
         roomList.open(new Room(8, 350.00));
-        roomList.open(new Room(5, 120.00));
+        //roomList.open(new Room(5, 120.00));
         //bookingList.record(new Booking(userList.users.get(0), false, menuList.menus.get(0), roomList.availableRooms.get(0)));
         //bookingList.record(new Booking(userList.users.get(0), true, menuList.menus.get(1), roomList.availableRooms.get(1)));
         //roomList.bookedRooms.add(roomList.availableRooms.get(0));
