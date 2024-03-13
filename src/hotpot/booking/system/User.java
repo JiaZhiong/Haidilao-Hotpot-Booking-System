@@ -1,21 +1,18 @@
 package hotpot.booking.system;
 
 import com.fasterxml.jackson.annotation.*;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-public class User implements BookingFunctions{
+public class User{
     static int repeatEditing = 1;
     
-    @JsonManagedReference
     static BookingList bookingList = BookingList.getInstance();
-    @JsonManagedReference
     static UserList userList = UserList.getInstance();
-    @JsonManagedReference
     static RoomList roomList = RoomList.getInstance();
-    @JsonManagedReference
     static MenuList menuList = MenuList.getInstance();
     
     //constants for seat layout
@@ -36,17 +33,42 @@ public class User implements BookingFunctions{
     private String name = "User";
     ArrayList<Booking> bookingPayables = new ArrayList(); //array to store bookings that are not paid
     
-    //constructor
+    @JsonCreator
     public User(String username){
         this.name = username;
     }
     
+    private User(){
+        
+    }
+    
+    @JsonValue
     public String getName(){
         return name;
     }
 
-    @Override
-    public void addBooking(User u) {
+    @JsonSetter
+    private void setName(String name) {
+        this.name = name;
+    }
+    
+    //update seat layout after retrieveState()
+    public static void updateSeat(){
+        for(Booking b: bookingList.bookings){
+            String seat = b.getSeatId();
+            if(!seat.matches("[a-j]{1}[0-9]{1,2}$") || 
+                    seatLayout[getRowNumber(Character.toString(seat.charAt(0)))][Integer.parseInt(seat.substring(1))] == OCCU){
+                bookingList.drop(b);
+                resetSeat(seat);
+            }
+            
+            if(seatLayout[getRowNumber(Character.toString(seat.charAt(0)))][Integer.parseInt(seat.substring(1))] != OCCU){
+                seatLayout[getRowNumber(Character.toString(seat.charAt(0)))][Integer.parseInt(seat.substring(1))] = OCCU;
+            }
+        }
+    }
+
+    public void addBooking(User u) throws IOException {
         //user selections
         String seatSelect = null;
         Boolean paySelect = false;
@@ -57,11 +79,6 @@ public class User implements BookingFunctions{
         
         //loop counter
         int repeat = 1;
-        
-        //check whether there are available rooms
-        if(!roomList.compare() || !roomList.checkAvailable()){
-            return;
-        }
         
         //USER INPUT FOR SEAT SELECTION
         do{
@@ -96,7 +113,7 @@ public class User implements BookingFunctions{
             String select = String.valueOf(rowSelect); //convert char to string
             select = select.concat(Integer.toString(colSelect)); //convert integer to string
 
-            seatSelect = verifySeat(select);
+            seatSelect = updateSeat(select);
             repeat = (seatSelect == null) ? 1 : 0;
         }while(repeat == 1);
         
@@ -139,18 +156,14 @@ public class User implements BookingFunctions{
         
         //USER INPUT FOR ROOM PACKAGE
         do{
-            if(!roomList.compare() || !roomList.checkAvailable()){
-                return;
-            }
-            
             int select = DEFAULT_SELECT;
             while(select < UserMain.CANCEL_INT){
                 try{
                     //print menus with index
                     System.out.println("Index\t Room Number\t Capacity\t Price");
                     
-                    roomList.availableRooms.forEach((room) -> {
-                        System.out.printf((roomList.availableRooms.indexOf(room) + 1) + ".\t " + room.getRoomNumber() + "\t\t " + room.getPax() + "\t\t RM%.2f" + "\n", room.getBasePrice());
+                    roomList.rooms.forEach((room) -> {
+                        System.out.printf((roomList.rooms.indexOf(room) + 1) + ".\t " + room.getRoomNumber() + "\t\t " + room.getPax() + "\t\t RM%.2f" + "\n", room.getBasePrice());
                     });
                     
                     select = input.nextInt() - 1;
@@ -164,15 +177,13 @@ public class User implements BookingFunctions{
                 }
             }
             
-            for(Room room: roomList.availableRooms){                
-                if(select == roomList.availableRooms.indexOf(room)){
+            for(Room room: roomList.rooms){                
+                if(select == roomList.rooms.indexOf(room)){
                     roomObj = room;
                     repeat = 0;
                     break;
                 }
             }
-            roomList.book(roomList.availableRooms.get(select));
-            
         }while(repeat == 1);
         
         repeat = 1;
@@ -187,7 +198,7 @@ public class User implements BookingFunctions{
             String select = input.next();
                 switch (select) {
                     case "y" -> {
-                        System.out.printf("\nYour total amount is RM%.2f\nPayment Successful! Thank you for booking!\n", BookingFunctions.payBooking(menuObj, roomObj)); //CALL payBooking() METHOD TO CALCULATE FULL TOTAL
+                        System.out.printf("\nYour total amount is RM%.2f\nPayment Successful! Thank you for booking!\n", payBooking(menuObj, roomObj)); //CALL payBooking() METHOD TO CALCULATE FULL TOTAL
                         paySelect = true;
                         repeat = 0;
                 }
@@ -207,16 +218,23 @@ public class User implements BookingFunctions{
         bookingList.record(new Booking(this, seatSelect, paySelect, menuObj, roomObj));
         
         System.out.println("\nBooking Successfully Placed! You can view bookings to confirm the due date of payment if you chose to pay later>\nHave a nice day!\n");
+        
+        UserMain.saveState();
         UserMain.repeatMain = 1;
     }
 
-    @Override
+    
     public void editBooking(User u) {
         Booking selectedBooking = null;
         
         int repeat = 1;
         do{
             sortBooking();
+            if(bookingPayables.isEmpty()){
+                System.out.println("No bookings due for payment found for this user. Please make a booking!\n");
+                UserMain.repeatMain = 1;
+                return;
+            }
             
             this.bookingPayables.forEach(booking -> {
                 System.out.println("\n" + (bookingList.bookings.indexOf(booking) + 1) + booking.toString(VIEW));
@@ -250,9 +268,9 @@ public class User implements BookingFunctions{
         System.out.println("");
         do{
             System.out.println("""
-                                                                                  Editing Menu
-                                                                          --Edit Booking Information--
-                               [1. Change Menu Package    2. Change Room Package    3. Transfer Booking to Friend (Another User)    4. Cancel Booking    Q. Back to Main]""");
+                                                                                                Editing Menu
+                                                                                        --Edit Booking Information--
+                               [1. Change Menu Package    2. Change Room Package    3. Change Seat Number    4. Transfer Booking to Friend (Another User)    5. Cancel Booking    Q. Back to Main]""");
             editOption = input.next();
             
             switch(editOption){
@@ -266,7 +284,47 @@ public class User implements BookingFunctions{
                     System.out.println("\nChanges saved successfully!");
                     repeatEditing = 0;
                 }
-                case "3" -> {
+                case "3" ->{
+                    char rowSelect = Character.MIN_VALUE;
+                    int colSelect = -1;
+                    
+                    System.out.println("Select a new seat number: ");
+                    displaySeatLayout();
+                    
+                    try{
+                        do{
+                            System.out.println("Please select row [A-J]: ");
+                            rowSelect = Character.toLowerCase(input.next().charAt(0));
+                            if(rowSelect == '0'){
+                                UserMain.repeatMain = 1;
+                                return;
+                            }
+                        }while(rowSelect < 'a' || rowSelect > 'j');
+
+                        do{
+                            System.out.println("Please select column [1-12]: ");
+                            colSelect = input.nextInt() - 1;
+                            if(colSelect < UserMain.CANCEL_INT){
+                                UserMain.repeatMain = 1;
+                                return;
+                            }
+                        }while(colSelect < 0 || colSelect > 11 );
+                    }catch(InputMismatchException e){
+                        System.out.println("\nInput not recognized as seat selection. Please enter again:");
+                        input.nextLine();
+                    }
+                    
+                    String select = String.valueOf(rowSelect);
+                    select = select.concat(Integer.toString(colSelect));
+                    
+                    resetSeat(selectedBooking.getSeatId()); //reset old seat first
+                    
+                    String newSeat = updateSeat(select); //assign new seat
+                    
+                    repeatEditing = 0;
+                    UserMain.repeatMain = 1;
+                }
+                case "4" -> {
                     System.out.println("\nSelect a user to transfer booking to: ");
                     User newUser = null;
                     
@@ -296,7 +354,7 @@ public class User implements BookingFunctions{
                         }
                     }while(repeatConfirm);
                 }
-                case "4" -> {
+                case "5" -> {
                     this.cancelBooking(u, selectedBooking);
                 }
                 case "q", "Q" -> {
@@ -309,7 +367,7 @@ public class User implements BookingFunctions{
         }while(repeatEditing == 1);
     }
     
-    @Override
+    
     public void cancelBooking(User u, Booking b) {
         boolean repeatConfirm = true;
         String confirm;
@@ -319,6 +377,7 @@ public class User implements BookingFunctions{
             switch(confirm){
                 case "yes" -> {
                     repeatConfirm = false;
+                    repeatEditing = 0;
                 }
                 case "no" -> {
                     repeatConfirm = false;
@@ -331,14 +390,18 @@ public class User implements BookingFunctions{
             }
         }while(repeatConfirm);
         
+        resetSeat(b.getSeatId());
         bookingList.drop(b);
-        roomList.drop(b.getRoom());
         
         System.out.println("Booking Successfully Cancelled!");
         UserMain.repeatMain = 1;
     }
+    
+    public double payBooking(Menu m, Room r) {
+        return (m.getBasePrice() + r.getBasePrice());
+    }
 
-    @Override
+    
     public void filterBooking(User u) {
         LocalDateTime cal = LocalDateTime.now();
         
@@ -355,7 +418,6 @@ public class User implements BookingFunctions{
                 System.out.println("\n\t[This booking has passed the due date of payment(!).]");
                 //check whether the list of unpaid bookings will be empty if current booking is the only element
                 if(bookingPayables.size() - 1 >= 1){
-                    roomList.free(booking.getRoom());
                     bookingList.drop(booking);
                     System.out.println("Bookings with oustanding balance from \'" + u.getName() + "\':");
                 }else{
@@ -391,7 +453,7 @@ public class User implements BookingFunctions{
         
         for(Booking booking : bookingList.bookings){
             if(select == bookingList.bookings.indexOf(booking)){
-                System.out.printf("Paid RM%.2f. Thank you cooperating by paying before the due date!\n", BookingFunctions.payBooking(booking.getMenu(), booking.getRoom()));
+                System.out.printf("Paid RM%.2f. Thank you cooperating by paying before the due date!\n", payBooking(booking.getMenu(), booking.getRoom()));
                 booking.setPaid(true);
             }
         }
@@ -400,7 +462,7 @@ public class User implements BookingFunctions{
         System.out.println("");
     }
     
-    @Override
+    
     public void viewBooking(User u) {
         ArrayList<Booking> userBookings = new ArrayList();
         
@@ -484,7 +546,7 @@ public class User implements BookingFunctions{
         System.out.println("\n* - unoccupied seat | X - occupied seat");
     }
     
-    private String verifySeat(String seat){
+    private static String updateSeat(String seat){
         if(!seat.matches("[a-j]{1}[0-9]{1,2}$")){
             System.out.println("Seat number is invalid. Please enter another seat");
             return null;
@@ -502,11 +564,23 @@ public class User implements BookingFunctions{
         return seat;
     }
     
+    private static void resetSeat(String seat){
+        if(!seat.matches("[a-j]{1}[0-9]{1,2}$")){
+            return;
+        }
+        
+        int rowInt = getRowNumber(Character.toString(seat.charAt(0)));
+        int colInt = Integer.parseInt(seat.substring(1));
+        
+        seatLayout[rowInt][colInt] = FREE;
+        System.out.println("Seat reset successful!\n");
+    }
+    
     private void fillArrayDefaultVal(){
-        for(int i = 0; i < seatLayout.length; i++){
-            for(int j = 0; j < seatLayout[i].length; j++){
-                if(seatLayout[i][j] == 0){
-                    seatLayout[i][j] = FREE;
+        for (char[] seatLayout1 : seatLayout) {
+            for (int j = 0; j < seatLayout1.length; j++) {
+                if (seatLayout1[j] == 0) {
+                    seatLayout1[j] = FREE;
                 }else{
                     //leave value as it is
                 }
@@ -514,7 +588,7 @@ public class User implements BookingFunctions{
         }
     }
     
-    private String getRowLetter(int i){
+    private static String getRowLetter(int i){
         switch(i){
             case 0 -> {
                 return "A";
@@ -552,7 +626,7 @@ public class User implements BookingFunctions{
         }
     }
     
-    private int getRowNumber(String s){
+    private static int getRowNumber(String s){
         switch(s){
             case "a" -> {
                 return 0;

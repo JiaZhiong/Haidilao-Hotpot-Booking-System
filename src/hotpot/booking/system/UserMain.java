@@ -1,9 +1,16 @@
 package hotpot.booking.system;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 import java.util.Scanner;
 
 public class UserMain{
-    static Scanner input = new Scanner(System.in);
+    static final Scanner input = new Scanner(System.in);
     static String userInput, userOption; //userInput for general user input while userOption for selecting options
     static int repeatMain = 1;
     static final String CANCEL_STR = "HAIDILAO";
@@ -13,8 +20,8 @@ public class UserMain{
     static BookingList bookingList = BookingList.getInstance();
     static MenuList menuList = MenuList.getInstance();
     
-    public static void main(String[] args){
-        initObjects();
+    public static void main(String[] args) throws IOException{
+        retrieveState();
         
         System.out.println("""
                                                         !ATTENTION DEAR USER!
@@ -42,7 +49,7 @@ public class UserMain{
                     if(valid == null){
                         System.out.println("User registered failed!\n");
                     }else{
-                        userList.add(new User(userInput));
+                        userList.register(new User(userInput));
                         System.out.println("User registered sucessfully!\n");
                     }
                 }
@@ -56,7 +63,6 @@ public class UserMain{
                     User selectedUser = verifyUser();
                     if(selectedUser != null){
                         selectedUser.addBooking(selectedUser);
-                        
                     }
                 }
                 case "3" -> {
@@ -95,7 +101,6 @@ public class UserMain{
                     User selectedUser = verifyUser();
                     if(selectedUser != null){
                         selectedUser.editBooking(selectedUser);
-                        
                     }
                 }
                 case "6" -> {
@@ -111,22 +116,20 @@ public class UserMain{
         
     }
     
+    
     //initialize objects manually
     private static void initObjects(){
         /* //DE-SERIALIZING PROCESS
-        1. Available Rooms
+        1. Rooms
         2. Menu
         3. User
         4. Bookings
-        5. Booked Rooms
         */
-        userList.add(new User("jer"));
-        userList.add(new User("coll"));
         menuList.record(new Menu("Seafood", 200.00));
         menuList.record(new Menu("Vegetarian", 150.00));
         roomList.open(new Room(12, 475.00));
         roomList.open(new Room(8, 350.00));
-        //roomList.open(new Room(5, 120.00));
+        roomList.open(new Room(5, 120.00));
         //bookingList.record(new Booking(userList.users.get(0), false, menuList.menus.get(0), roomList.availableRooms.get(0)));
         //bookingList.record(new Booking(userList.users.get(0), true, menuList.menus.get(1), roomList.availableRooms.get(1)));
         //roomList.bookedRooms.add(roomList.availableRooms.get(0));
@@ -166,5 +169,84 @@ public class UserMain{
         }
         System.out.println("Could not find user\n");
         return null;
+    }
+    
+    public static void saveState() throws JsonProcessingException, IOException{
+        File savePath = new File("src\\hotpot\\booking\\system\\Haidilao.json");
+        
+        ObjectMapper mapperO = new ObjectMapper();
+        mapperO.findAndRegisterModules();
+        
+        mapperO.writerWithDefaultPrettyPrinter().writeValue(savePath, bookingList.bookings);
+        
+        System.out.println("Saved successfully");
+    }
+    
+    private static void retrieveState() throws IOException{
+        File savePath = new File("src\\hotpot\\booking\\system\\Haidilao.json");
+        
+        JsonMapper mapperJ = new JsonMapper();
+        mapperJ.findAndRegisterModules();
+        bookingList.bookings = mapperJ.readValue(savePath, new TypeReference<List<Booking>>(){});
+        
+        restoreState();
+        User.updateSeat();
+        System.out.println("Loaded successfully");
+    }
+    
+    //add objects into respective holder classes and check for duplicates
+    private static void restoreState(){
+        for(Booking b: bookingList.bookings){
+            if(!userList.users.isEmpty()){
+                for(User u: userList.users){
+                    if(u.getName().equals(b.getUser().getName())){
+                        b.setUser(u);
+                        break;
+                    }else if(userList.users.indexOf(u) == userList.users.size() - 1){
+                        userList.register(b.getUser());
+                    }
+                }
+            }else{
+                userList.register(b.getUser());
+            }
+            
+            if(!menuList.menus.isEmpty()){
+                Menu newMenu = null;
+                for(Menu m: menuList.menus){
+                    if(m.getMenuName().equals(b.getMenu().getMenuName())){
+                        newMenu = m;
+                        break;
+                    }else if(menuList.menus.indexOf(m) == menuList.menus.size() - 1){
+                        menuList.record(b.getMenu());
+                    }
+                }
+                
+                if(newMenu != null){
+                    b.setMenu(newMenu);
+                }
+            }else{
+                menuList.record(b.getMenu());
+            }
+            
+            if(!roomList.rooms.isEmpty()){
+                Room newRoom = null;
+                for(Room r: roomList.rooms){
+                    if(r.getRoomNumber() == b.getRoomNumber()){
+                        newRoom = r;
+                        break;
+                    }else if(roomList.rooms.indexOf(r) == roomList.rooms.size() - 1){
+                        break;
+                    }
+                }
+                
+                if(newRoom != null){
+                    b.setRoom(newRoom);
+                }else{
+                    roomList.open(b.getRoom());
+                }
+            }else{
+                roomList.open(b.getRoom());
+            }
+        }
     }
 }

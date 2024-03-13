@@ -1,0 +1,16 @@
+[ {
+  "seatId" : "e2",
+  "menu" : {
+    "menuName" : "Vegetarian",
+    "basePrice" : 150.0
+  },
+  "room" : {
+    "roomNumber" : 5985,
+    "pax" : 8,
+    "basePrice" : 350.0
+  },
+  "paid" : true,
+  "bookedDate" : [ 2024, 3, 13, 23, 1, 43, 213400300 ],
+  "dueDate" : null,
+  "user" : "jer"
+} ]

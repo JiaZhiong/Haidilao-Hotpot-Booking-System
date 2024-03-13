@@ -1,33 +1,39 @@
 package hotpot.booking.system;
 
+import com.fasterxml.jackson.annotation.*;
 import java.util.ArrayList;
 
-public class Menu extends Package{
-    private String menuName;
-    ArrayList<Item> item = new ArrayList<>();
+@JsonPropertyOrder({"menuName", "basePrice"})
+public class Menu{
+    private String menuName = "";
+    private double basePrice = 0.0;
     
     public Menu(String menuName, double basePrice){
         this.menuName = menuName;
-        this.setBasePrice(basePrice);
+        this.basePrice = basePrice;
     }
     
-    public Menu(String menuName){
-        this.menuName = menuName;
+    private Menu(){
+        
     }
 
+    @JsonGetter
     public String getMenuName() {
         return menuName;
     }
 
+    @JsonProperty("menuName")
     public void setMenuName(String menuName) {
         this.menuName = menuName;
     }
     
-    public void addItem(Item i){
-        item.add(i);
+    @JsonGetter
+    public double getBasePrice() {
+        return basePrice;
     }
-    
-    public void removeItem(Item i){
-        item.remove(i);
+
+    @JsonSetter
+    public void setBasePrice(double basePrice) {
+        this.basePrice = basePrice;
     }
 }

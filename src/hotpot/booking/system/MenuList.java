@@ -1,9 +1,11 @@
 package hotpot.booking.system;
 
+import com.fasterxml.jackson.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MenuList implements JsonState{
+@JsonRootName(value = "menuDetails")
+public class MenuList{
     List<Menu> menus = null;
     
     private MenuList() {
@@ -25,15 +27,5 @@ public class MenuList implements JsonState{
     
     public void drop(Menu m){
         menus.remove(m);
-    }
-    
-    @Override
-    public void serialize() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public void deserialize() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
