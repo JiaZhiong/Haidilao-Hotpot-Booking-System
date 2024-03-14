@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class UserMain{
+    private static final File savePath = new File("src\\hotpot\\booking\\system\\Haidilao.json");
     static final Scanner input = new Scanner(System.in);
     static String userInput, userOption; //userInput for general user input while userOption for selecting options
     static int repeatMain = 1;
@@ -172,7 +173,7 @@ public class UserMain{
     }
     
     public static void saveState() throws JsonProcessingException, IOException{
-        File savePath = new File("src\\hotpot\\booking\\system\\Haidilao.json");
+        //File savePath = new File("src\\hotpot\\booking\\system\\Haidilao.json");
         
         ObjectMapper mapperO = new ObjectMapper();
         mapperO.findAndRegisterModules();
@@ -183,8 +184,7 @@ public class UserMain{
     }
     
     private static void retrieveState() throws IOException{
-        File savePath = new File("src\\hotpot\\booking\\system\\Haidilao.json");
-        
+        //File savePath = new File("src\\hotpot\\booking\\system\\Haidilao.json");
         JsonMapper mapperJ = new JsonMapper();
         mapperJ.findAndRegisterModules();
         bookingList.bookings = mapperJ.readValue(savePath, new TypeReference<List<Booking>>(){});
