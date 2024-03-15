@@ -1,16 +1,31 @@
 [ {
-  "seatId" : "e2",
+  "seatId" : "i2",
   "menu" : {
-    "menuName" : "Vegetarian",
-    "basePrice" : 150.0
+    "menuName" : "Seafood",
+    "basePrice" : 200.0
   },
   "room" : {
-    "roomNumber" : 5985,
+    "roomNumber" : 6005,
     "pax" : 8,
     "basePrice" : 350.0
   },
   "paid" : true,
-  "bookedDate" : [ 2024, 3, 13, 23, 1, 43, 213400300 ],
+  "bookedDate" : null,
   "dueDate" : null,
   "user" : "jer"
+}, {
+  "seatId" : "d9",
+  "menu" : {
+    "menuName" : "Seafood",
+    "basePrice" : 200.0
+  },
+  "room" : {
+    "roomNumber" : 9424,
+    "pax" : 12,
+    "basePrice" : 475.0
+  },
+  "paid" : false,
+  "bookedDate" : null,
+  "dueDate" : null,
+  "user" : "coll"
 } ]

@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Scanner;
 
 public class UserMain{
+    //**NOTES**
+    //Any file ending with List is a holder class
+
     private static final File savePath = new File("src\\hotpot\\booking\\system\\Haidilao.json");
     static final Scanner input = new Scanner(System.in);
     static String userInput, userOption; //userInput for general user input while userOption for selecting options
@@ -22,7 +25,9 @@ public class UserMain{
     static MenuList menuList = MenuList.getInstance();
     
     public static void main(String[] args) throws IOException{
-        retrieveState();
+        initData();
+        
+        //bookingList.record(new Booking(userList.users.get("coll"), "h5", false, menuList.menus.get("Seafood"), Room.getInstance()));
         
         System.out.println("""
                                                         !ATTENTION DEAR USER!
@@ -48,9 +53,10 @@ public class UserMain{
                     }
                     
                     if(valid == null){
-                        System.out.println("User registered failed!\n");
+                        System.out.println("Registration failed!\n");
                     }else{
-                        userList.register(new User(userInput));
+                        userList.register(userInput, new User(userInput));
+                        userList.saveUsers();
                         System.out.println("User registered sucessfully!\n");
                     }
                 }
@@ -109,62 +115,65 @@ public class UserMain{
                 }
                 case "Q", "q" -> {
                     System.out.println("Quitted\n");
+                    storeData();
                     repeatMain = 0;
                 }
                 default -> System.out.println("Sorry. We did not get that... please select your option again\n");
             }
         }while(repeatMain == 1);
-        
     }
     
     
     //initialize objects manually
-    private static void initObjects(){
-        /* //DE-SERIALIZING PROCESS
-        1. Rooms
-        2. Menu
-        3. User
-        4. Bookings
-        */
-        menuList.record(new Menu("Seafood", 200.00));
-        menuList.record(new Menu("Vegetarian", 150.00));
+    protected static void initObjects(){
+        menuList.record("Seafood", new Menu("Seafood", 200.00));
+        menuList.record("Vegetarian", new Menu("Vegetarian", 150.00));
         roomList.open(new Room(12, 475.00));
         roomList.open(new Room(8, 350.00));
         roomList.open(new Room(5, 120.00));
-        //bookingList.record(new Booking(userList.users.get(0), false, menuList.menus.get(0), roomList.availableRooms.get(0)));
-        //bookingList.record(new Booking(userList.users.get(0), true, menuList.menus.get(1), roomList.availableRooms.get(1)));
-        //roomList.bookedRooms.add(roomList.availableRooms.get(0));
-        //roomList.bookedRooms.add(roomList.availableRooms.get(2));
     }
-            
-    private static Boolean checkUserName(String input){
-        for(User user: User.userList.users){
-            if(input.matches("^(?=[a-zA-Z0-9._]{3,20}$)(?!.*[_.]{2})[^_.].*[^_.]$")){
-                if(!input.equals(user.getName())){
-                    if(input.equalsIgnoreCase("Haidilao")){
-                        return null;
-                    }
-                    // ---> exit to return true for user name check on final line
-                }else{
-                    System.out.println("User name is already registered!\nPlease enter another user name: ");
-                    return false;
+    
+    protected static void initData() throws IOException{
+        userList.retrieveUsers();
+        menuList.retrieveMenus();
+        roomList.retrieveRooms();
+        retrieveState(); //bookings
+        
+        //initObjects(); //initialize objects because user cannot create menus or rooms
+    }
+    
+    protected static void storeData() throws IOException{
+        userList.saveUsers();
+        menuList.saveMenus();
+        roomList.saveRooms();
+        saveState();
+    }
+    
+    
+    protected static Boolean checkUserName(String input){
+        if(input.matches("^(?=[a-zA-Z0-9._]{3,20}$)(?!.*[_.]{2})[^_.].*[^_.]$")){
+            if(!userList.users.containsKey(input)){
+                if(input.equalsIgnoreCase("Haidilao")){
+                    return null;
                 }
+                // ---> exit to return true for user name check on final line
             }else{
-                System.out.println("User name format is invalid!\nYour user name should consist of 3 or more characters with no symbols except \"_\", but ONLY BETWEEN characters");
+                System.out.println("User name is already registered!\nPlease enter another user name: ");
                 return false;
             }
+        }else{
+            System.out.println("User name format is invalid!\nYour user name should consist of 3 or more characters with no symbols except \"_\", but ONLY BETWEEN characters");
+            return false;
         }
         return true;
     }
     
-    private static User verifyUser(){
+    protected static User verifyUser(){
         int repeat = 1;
         while(repeat == 1){
-            for(User selectedUser: userList.users){
-                if(selectedUser.getName().equals(userInput)){
-                    repeatMain = 0;
-                    return selectedUser;
-                }
+            if(userList.users.containsKey(userInput)){
+                repeatMain = 0;
+                return userList.users.get(userInput);
             }
             repeat = 0;
         }
@@ -187,60 +196,75 @@ public class UserMain{
         //File savePath = new File("src\\hotpot\\booking\\system\\Haidilao.json");
         JsonMapper mapperJ = new JsonMapper();
         mapperJ.findAndRegisterModules();
-        bookingList.bookings = mapperJ.readValue(savePath, new TypeReference<List<Booking>>(){});
         
-        restoreState();
-        User.updateSeat();
+        if(savePath.length() > 0 || savePath.exists()){
+            bookingList.bookings = mapperJ.readValue(savePath, new TypeReference<List<Booking>>(){});
+        }else{
+            String json = "[ ]";
+            bookingList.bookings = mapperJ.readValue(json, new TypeReference<List<Booking>>(){});
+        }
+        
+
+        /*
+        String json = """
+                      [ {
+                        "seatId" : "h5",
+                        "menu" : {
+                          "menuName" : "Seafood",
+                          "basePrice" : 200.0
+                        },
+                        "room" : {
+                          "roomNumber" : 10000,
+                          "pax" : 8,
+                          "basePrice" : 100.0
+                        },
+                        "paid" : false,
+                        "bookedDate" : [ 2024, 3, 15, 12, 33, 31, 860294500 ],
+                        "dueDate" : [ 2024, 3, 18, 12, 33, 31, 860294500 ],
+                        "user" : "coll"
+                      } ]
+                      """;
+        
+        //bookingList.bookings = mapperJ.readValue(json, new TypeReference<List<Booking>>(){});
+        */
+        if(!bookingList.bookings.isEmpty()){
+            updateState();
+            User.updateSeat();
+        }
         System.out.println("Loaded successfully");
     }
     
     //add objects into respective holder classes and check for duplicates
-    private static void restoreState(){
+    private static void updateState(){
         for(Booking b: bookingList.bookings){
+            
+            //check for user duplicates
             if(!userList.users.isEmpty()){
-                for(User u: userList.users){
-                    if(u.getName().equals(b.getUser().getName())){
-                        b.setUser(u);
-                        break;
-                    }else if(userList.users.indexOf(u) == userList.users.size() - 1){
-                        userList.register(b.getUser());
-                    }
+                if(userList.users.containsKey(b.getUser().getName())){
+                    b.setUser(userList.users.get(b.getUser().getName()));
+                    break;
+                }else{
+                    userList.register(b.getUser().getName(), b.getUser());
                 }
             }else{
-                userList.register(b.getUser());
+                userList.register(b.getUser().getName(), b.getUser());
             }
             
+            //check for menu duplicates
             if(!menuList.menus.isEmpty()){
-                Menu newMenu = null;
-                for(Menu m: menuList.menus){
-                    if(m.getMenuName().equals(b.getMenu().getMenuName())){
-                        newMenu = m;
-                        break;
-                    }else if(menuList.menus.indexOf(m) == menuList.menus.size() - 1){
-                        menuList.record(b.getMenu());
-                    }
-                }
-                
-                if(newMenu != null){
-                    b.setMenu(newMenu);
+                if(menuList.menus.containsKey(b.getMenu().getMenuName())){
+                    b.setMenu(menuList.menus.get(b.getMenu().getMenuName()));
+                }else{
+                    menuList.record(b.getMenu().getMenuName(), b.getMenu());
                 }
             }else{
-                menuList.record(b.getMenu());
+                menuList.record(b.getMenu().getMenuName(), b.getMenu());
             }
             
+            //check for room duplicates
             if(!roomList.rooms.isEmpty()){
-                Room newRoom = null;
-                for(Room r: roomList.rooms){
-                    if(r.getRoomNumber() == b.getRoomNumber()){
-                        newRoom = r;
-                        break;
-                    }else if(roomList.rooms.indexOf(r) == roomList.rooms.size() - 1){
-                        break;
-                    }
-                }
-                
-                if(newRoom != null){
-                    b.setRoom(newRoom);
+                if(roomList.rooms.containsKey(b.getRoomNumber())){
+                    b.setRoom(roomList.rooms.get(b.getRoomNumber()));
                 }else{
                     roomList.open(b.getRoom());
                 }

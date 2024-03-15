@@ -57,43 +57,47 @@ public class Booking{
             return c.format(formatter);
         }
     }
-    
+
     public void setMenuPkg(User u) {
         int repeat = 1;
         
         do{
-            int select = User.DEFAULT_SELECT;
-            int i = 1;
+            String select = "";
             
-            while(select < UserMain.CANCEL_INT){
+            System.out.println("\nEnter 'haidilao' to exit to Editing Menu");
+            while(!menuList.menus.containsKey(select)){
                 try{
                     //print menus with index
-                    System.out.println("Enter a number 0 or lesser to exit to Editing Menu\nSelect a new menu package: \nIndex\t Menu Name\t Price");
-                    for(Menu menuBooking : menuList.menus){
-                        if(this.menu != menuBooking){
-                            System.out.printf(i + ".\t " + menuBooking.getMenuName() + " \t RM%.2f" + "\n", menuBooking.getBasePrice());
-                            i++;
-                        }
-                    }
+                    System.out.println("Select a new menu package: \nMenu Name\t Price");
                     
-                    select = input.nextInt() - 1;
-                    if(select < UserMain.CANCEL_INT){
+                    menuList.menus.forEach((name, m) -> {
+                        if(!this.menuPkg.equals(name)){
+                            System.out.printf(m.getMenuName() + " \t RM%.2f" + "\n", m.getBasePrice());
+                        }
+                    });
+                    
+                    select = input.next();
+                    if(select.equalsIgnoreCase(UserMain.CANCEL_STR)){
                         UserMain.repeatMain = 1;
                         return;
+                    }else if(select.equals(this.menu.getMenuName())){
+                        System.out.println("\nThis menu is unavailable, " + select + " is already your menu package. Please choose another menu.\n");
+                        select = "";
                     }
-                    
                 }catch(InputMismatchException e){
-                   System.out.println("\nInvalid response. Please enter again:");
+                   System.out.println("\nInvalid response. Please enter your selection again:");
                    input.nextLine();
                 }
             }
             
-            for(Menu menuBooking: menuList.menus){
-                if(select == menuList.menus.indexOf(menuBooking)){
-                    this.menu = menuBooking;
-                    this.menuPkg = menuBooking.getMenuName();
-                    repeat = 0;
-                }
+            if(menuList.menus.containsKey(select)){
+                this.menu = menuList.menus.get(select);
+                this.menuPkg = this.menu.getMenuName();
+                repeat = 0;
+                UserMain.repeatMain = 1;
+                System.out.println("\nChanges saved successfully!");
+            }else{
+                return;
             }
             
         }while(repeat == 1);
@@ -103,42 +107,45 @@ public class Booking{
     
     public void setRoomPkg(User u) {
         int repeat = 1;
-        Room newRoom = null;
         
         do{
             int select = User.DEFAULT_SELECT;
-            int i = 1;
+            //int i = 1;
+            System.out.println("(Enter a number 0 or lesser to exit to main");
             
-            while(select < UserMain.CANCEL_INT){
+            while(!roomList.rooms.containsKey(select)){
                 try{
                     //print menus with index
-                    System.out.println("(Enter a number 0 or lesser to exit to main)\n\nIndex\t Room Number\t Capacity\t Price");
+                    System.out.println("\nSelect a new room package: \nRoom Number\t Capacity\t Price");
                     
-                    for(Room roomBooking : roomList.rooms){
-                        if(this.room != roomBooking){
-                            System.out.printf(i + ".\t " + roomBooking.getRoomNumber() + "\t\t " + roomBooking.getPax() + "\t\t RM%.2f" + "\n", roomBooking.getBasePrice());
-                            i++;
+                    roomList.rooms.forEach((num, r) -> {
+                        if(!this.room.equals(r)){
+                            System.out.printf(r.getRoomNumber() + "\t\t " + r.getPax() + "\t\t RM%.2f" + "\n", r.getBasePrice());
                         }
-                    }
+                    });
                     
-                    select = input.nextInt() - 1;
-                    if(select < UserMain.CANCEL_INT){
+                    select = input.nextInt();
+                    if(select <= UserMain.CANCEL_INT){
                         UserMain.repeatMain = 1;
                         return;
+                    }else if(select == this.room.getRoomNumber()){
+                        System.out.println("\nThis menu is unavailable, " + select + " is already your room package. Please choose another room.");
+                        select = User.DEFAULT_SELECT;
                     }
                 }catch(InputMismatchException e){
-                   System.out.println("\nInvalid response. Please enter again: ");
+                   System.out.println("\nInvalid response. Please enter your selection again: ");
                    input.nextLine();
                 }
             }
             
-            for(Room roomBooking : roomList.rooms){
-                if(select == roomList.rooms.indexOf(roomBooking)){
-                    this.room = roomBooking;
-                    this.roomNumber = roomBooking.getRoomNumber();
-                    newRoom = roomBooking;
-                    repeat = 0;
-                }
+            if(roomList.rooms.containsKey(select)){
+                this.room = roomList.rooms.get(select);
+                this.roomNumber = this.room.getRoomNumber();
+                repeat = 0;
+                UserMain.repeatMain = 1;
+                System.out.println("\nChanges saved successfully!");
+            }else{
+                return;
             }
             
         }while(repeat == 1);
@@ -229,6 +236,10 @@ public class Booking{
             }
             case 'v' -> {
                 return "\n\tMenu: " + this.menu.getMenuName() + "\n\tSeat Number: " + this.seatId + "\n\tRoom Number: " + this.room.getRoomNumber() + "\n\tDate & Time of Booking: " + this.bookedDateTimeStr + 
+                    "\n\tPayment Due Date: " + ((this.dueDateTimeStr == null) ? "N/A" : this.dueDateTimeStr) + "\n\tPaid: " + ((this.paid) ? "Yes" : "No");
+            }
+            case 'a' -> {
+                return "\n\tUser: " + this.user.getName() + "\n\tSeat Number: " + this.seatId + "\n\tMenu: " + this.menu.getMenuName() + "\n\tRoom Number: " + this.room.getRoomNumber() + "\n\tDate & Time of Booking: " + this.bookedDateTimeStr + 
                     "\n\tPayment Due Date: " + ((this.dueDateTimeStr == null) ? "N/A" : this.dueDateTimeStr) + "\n\tPaid: " + ((this.paid) ? "Yes" : "No");
             }
             default -> {

@@ -17,6 +17,12 @@ public class Room{
         this.roomNumber = generateRoomNum();
     }
     
+    private Room(int roomNum, int capacity, double basePrice){
+        this.roomNumber = roomNum;
+        this.pax = capacity;
+        this.basePrice = basePrice;
+    }
+    
     private Room(int roomNumber){
         this.roomNumber = roomNumber;
     }
@@ -25,18 +31,27 @@ public class Room{
         
     }
     
+    public static Room getInstance() {
+        return DecoyRoom.INSTANCE;
+    }
+    
+    private static class DecoyRoom {
+
+        private static final Room INSTANCE = new Room(10000, 8, 100);
+    }
+    
     private Integer generateRoomNum(){
         Integer n = null;
         
         int repeat = 1;
         while(repeat == 1){
             n = genNum.nextInt(1000, 9999);
-            for(Room r: roomList.rooms){
-                if(n == r.getRoomNumber()){
-                    n = genNum.nextInt(1000, 9999);
-                }
+            
+            if(roomList.rooms.containsKey(n)){
+                n = genNum.nextInt(1000, 9999);
+            }else{
+                repeat = 0;
             }
-            repeat = 0;
         }
         return n;
     }

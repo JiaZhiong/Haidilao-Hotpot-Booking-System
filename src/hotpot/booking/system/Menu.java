@@ -1,7 +1,6 @@
 package hotpot.booking.system;
 
 import com.fasterxml.jackson.annotation.*;
-import java.util.ArrayList;
 
 @JsonPropertyOrder({"menuName", "basePrice"})
 public class Menu{

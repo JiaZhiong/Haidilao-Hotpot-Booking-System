@@ -1,0 +1,17 @@
+{
+  "9424" : {
+    "roomNumber" : 9424,
+    "pax" : 12,
+    "basePrice" : 475.0
+  },
+  "6005" : {
+    "roomNumber" : 6005,
+    "pax" : 8,
+    "basePrice" : 350.0
+  },
+  "2294" : {
+    "roomNumber" : 2294,
+    "pax" : 5,
+    "basePrice" : 120.0
+  }
+}

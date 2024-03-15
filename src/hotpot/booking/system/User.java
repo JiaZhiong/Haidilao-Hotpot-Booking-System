@@ -26,14 +26,15 @@ public class User{
     static final char FILTER = 'f';
     
     //constants for exiting operations
-    static final int DEFAULT_SELECT = -1;
+    static final int DEFAULT_SELECT = 1;
     static private char[][] seatLayout = new char[ROWS][COLS];
     
     static final Scanner input = new Scanner(System.in);
+    
+    @JsonKey
     private String name = "User";
     ArrayList<Booking> bookingPayables = new ArrayList(); //array to store bookings that are not paid
     
-    @JsonCreator
     public User(String username){
         this.name = username;
     }
@@ -99,12 +100,12 @@ public class User{
                 
                 do{
                     System.out.println("Please select column [1-12]: ");
-                    colSelect = input.nextInt() - 1;
+                    colSelect = input.nextInt();
                     if(colSelect < UserMain.CANCEL_INT){
                         UserMain.repeatMain = 1;
                         return;
                     }
-                }while(colSelect < 0 || colSelect > 11 );
+                }while(colSelect < 1 || colSelect > 12);
             }catch(InputMismatchException e){
                 System.out.println("\nInput not recognized as seat selection. Please enter again:");
                 input.nextLine();
@@ -118,22 +119,22 @@ public class User{
         }while(repeat == 1);
         
         
-        System.out.println("\nEnter a number 0 or lesser to exit to main\nSelect a menu package (via number)");
+        System.out.println("\nEnter 'haidilao' to exit to main\nSelect a menu package via name: ");
         
         //USER INPUT FOR MENU PACKAGE
         do{
-            int select = DEFAULT_SELECT;
+            String select = "";
             
-            while(select < UserMain.CANCEL_INT){
+            while(!menuList.menus.containsKey(select)){
                 try{
                     //print menus with index
-                    System.out.println("Index\t Menu Name\t Price");
-                    menuList.menus.forEach((menu) -> {
-                        System.out.printf((menuList.menus.indexOf(menu) + 1) + ".\t " + menu.getMenuName() + "\t RM%.2f" + "\n", menu.getBasePrice());
+                    System.out.println("Menu Name    \tPrice");
+                    menuList.menus.forEach((name, m) -> {
+                        System.out.printf(m.getMenuName() + "    \tRM%.2f\n", m.getBasePrice());
                     });
                     
-                    select = input.nextInt() - 1;
-                    if(select < UserMain.CANCEL_INT){
+                    select = input.next();
+                    if(select.equalsIgnoreCase(UserMain.CANCEL_STR)){
                         UserMain.repeatMain = 1;
                         return;
                     }
@@ -143,31 +144,29 @@ public class User{
                 }
             }
             
-            for(Menu menu: menuList.menus){
-                if(select == menuList.menus.indexOf(menu)){
-                    menuObj = menu;
-                    repeat = 0;
-                }
+            if(menuList.menus.containsKey(select)){
+                menuObj = menuList.menus.get(select);
+                repeat = 0;
             }
         }while(repeat == 1);
         
         repeat = 1;
-        System.out.println((repeat == 1) ? "Enter a number 0 or lesser to exit to main\nSelect a room package (via number)" : "");
+        System.out.println((repeat == 1) ? "\nEnter 0 or lesser to exit to main\nSelect a room package via number" : "");
         
         //USER INPUT FOR ROOM PACKAGE
         do{
             int select = DEFAULT_SELECT;
-            while(select < UserMain.CANCEL_INT){
+            while(!roomList.rooms.containsKey(select)){
                 try{
                     //print menus with index
-                    System.out.println("Index\t Room Number\t Capacity\t Price");
+                    System.out.println("Room Number\t Capacity\t Price");
                     
-                    roomList.rooms.forEach((room) -> {
-                        System.out.printf((roomList.rooms.indexOf(room) + 1) + ".\t " + room.getRoomNumber() + "\t\t " + room.getPax() + "\t\t RM%.2f" + "\n", room.getBasePrice());
+                    roomList.rooms.forEach((num, r) -> {
+                        System.out.printf(r.getRoomNumber() + "\t\t " + r.getPax() + "\t\t RM%.2f" + "\n", r.getBasePrice());
                     });
                     
-                    select = input.nextInt() - 1;
-                    if(select < UserMain.CANCEL_INT){
+                    select = input.nextInt();
+                    if(select <= UserMain.CANCEL_INT){
                         UserMain.repeatMain = 1;
                         return;
                     }
@@ -177,13 +176,14 @@ public class User{
                 }
             }
             
-            for(Room room: roomList.rooms){                
-                if(select == roomList.rooms.indexOf(room)){
-                    roomObj = room;
-                    repeat = 0;
-                    break;
-                }
+            if(roomList.rooms.containsKey(select)){
+                roomObj = roomList.rooms.get(select);
+                repeat = 0;
+                break;
+            }else{
+                return;
             }
+            
         }while(repeat == 1);
         
         repeat = 1;
@@ -224,14 +224,14 @@ public class User{
     }
 
     
-    public void editBooking(User u) {
+    public void editBooking(User u) throws IOException {
         Booking selectedBooking = null;
         
         int repeat = 1;
         do{
             sortBooking();
             if(bookingPayables.isEmpty()){
-                System.out.println("No bookings due for payment found for this user. Please make a booking!\n");
+                System.out.println("No editable bookings found for this user. Please make a booking!\n");
                 UserMain.repeatMain = 1;
                 return;
             }
@@ -240,7 +240,7 @@ public class User{
                 System.out.println("\n" + (bookingList.bookings.indexOf(booking) + 1) + booking.toString(VIEW));
             });
 
-            int bookingSelect = User.DEFAULT_SELECT;
+            int bookingSelect = -1;
             while(bookingSelect < UserMain.CANCEL_INT){
                 try{
                     System.out.println("\nSelect a booking to edit:");
@@ -276,12 +276,10 @@ public class User{
             switch(editOption){
                 case "1" -> {
                     selectedBooking.setMenuPkg(this);
-                    System.out.println("\nChanges saved successfully!");
                     repeatEditing = 0;
                 }
                 case "2" -> {
                     selectedBooking.setRoomPkg(this);
-                    System.out.println("\nChanges saved successfully!");
                     repeatEditing = 0;
                 }
                 case "3" ->{
@@ -320,13 +318,16 @@ public class User{
                     resetSeat(selectedBooking.getSeatId()); //reset old seat first
                     
                     String newSeat = updateSeat(select); //assign new seat
+                    if(newSeat != null){
+                        selectedBooking.setSeatId(newSeat);
+                    }
                     
                     repeatEditing = 0;
                     UserMain.repeatMain = 1;
                 }
                 case "4" -> {
                     System.out.println("\nSelect a user to transfer booking to: ");
-                    User newUser = null;
+                    User newUser = verifyUser();
                     
                     while(newUser == null){
                         newUser = verifyUser();
@@ -360,6 +361,7 @@ public class User{
                 case "q", "Q" -> {
                     repeatEditing = 0;
                     UserMain.repeatMain = 1;
+                    UserMain.saveState();
                 }
                 default -> System.out.println("Sorry. We did not get that... please select your option again\n");
             }
@@ -402,7 +404,7 @@ public class User{
     }
 
     
-    public void filterBooking(User u) {
+    public void filterBooking(User u) throws IOException {
         LocalDateTime cal = LocalDateTime.now();
         
         sortBooking();
@@ -435,7 +437,7 @@ public class User{
         
         System.out.println("");
         
-        int select = User.DEFAULT_SELECT;
+        int select = -1;
         while(select < UserMain.CANCEL_INT){
             try{
                 System.out.println("Please select a booking to pay oustanding amount:");
@@ -455,13 +457,13 @@ public class User{
             if(select == bookingList.bookings.indexOf(booking)){
                 System.out.printf("Paid RM%.2f. Thank you cooperating by paying before the due date!\n", payBooking(booking.getMenu(), booking.getRoom()));
                 booking.setPaid(true);
+                UserMain.saveState();
             }
         }
         
         UserMain.repeatMain = 1;
         System.out.println("");
     }
-    
     
     public void viewBooking(User u) {
         ArrayList<Booking> userBookings = new ArrayList();
@@ -510,11 +512,13 @@ public class User{
         int repeat = 1;
         while(repeat == 1){
             String userInput = input.next();
-            for(User selectedUser: userList.users){
-                if(selectedUser.getName().equals(userInput)){
-                    repeatEditing = 0;
-                    return selectedUser;
+            if(userList.users.containsKey(userInput)){
+                if(userInput.equals(this.name)){
+                    System.out.println("\nUser selected itself. Please choose another user.");
+                    return null;
                 }
+                repeatEditing = 0;
+                return userList.users.get(userInput);
             }
             repeat = 0;
         }
@@ -546,6 +550,7 @@ public class User{
         System.out.println("\n* - unoccupied seat | X - occupied seat");
     }
     
+    
     private static String updateSeat(String seat){
         if(!seat.matches("[a-j]{1}[0-9]{1,2}$")){
             System.out.println("Seat number is invalid. Please enter another seat");
@@ -553,7 +558,7 @@ public class User{
         }
         
         int rowInt = getRowNumber(Character.toString(seat.charAt(0)));
-        int colInt = Integer.parseInt(seat.substring(1));
+        int colInt = Integer.parseInt(seat.substring(1)) - 1;
         
         if(seatLayout[rowInt][colInt] == OCCU){
             System.out.println("\nThis seat is occupied! Please select another");
@@ -570,7 +575,7 @@ public class User{
         }
         
         int rowInt = getRowNumber(Character.toString(seat.charAt(0)));
-        int colInt = Integer.parseInt(seat.substring(1));
+        int colInt = Integer.parseInt(seat.substring(1)) - 1;
         
         seatLayout[rowInt][colInt] = FREE;
         System.out.println("Seat reset successful!\n");
