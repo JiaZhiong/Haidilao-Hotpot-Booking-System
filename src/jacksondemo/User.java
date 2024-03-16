@@ -1,4 +1,4 @@
-package hotpot.booking.system;
+package jacksondemo;
 
 import com.fasterxml.jackson.annotation.*;
 import java.io.IOException;

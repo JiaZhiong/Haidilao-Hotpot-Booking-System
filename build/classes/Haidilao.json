@@ -1,0 +1,16 @@
+[ {
+  "seatId" : "a4",
+  "menu" : {
+    "menuName" : "Vegetarian",
+    "basePrice" : 150.0
+  },
+  "room" : {
+    "roomNumber" : 10000,
+    "pax" : 8,
+    "basePrice" : 100.0
+  },
+  "paid" : false,
+  "bookedDate" : [ 2024, 3, 16, 19, 12, 17, 445571400 ],
+  "dueDate" : [ 2024, 3, 19, 19, 12, 17, 445571400 ],
+  "user" : "jer"
+} ]

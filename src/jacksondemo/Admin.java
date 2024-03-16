@@ -1,4 +1,4 @@
-package hotpot.booking.system;
+package jacksondemo;
 
 import java.io.IOException;
 import java.util.InputMismatchException;

@@ -1,0 +1,10 @@
+{
+  "Vegetarian" : {
+    "menuName" : "Vegetarian",
+    "basePrice" : 150.0
+  },
+  "Seafood" : {
+    "menuName" : "Seafood",
+    "basePrice" : 200.0
+  }
+}
