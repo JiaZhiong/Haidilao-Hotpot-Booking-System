@@ -12,8 +12,11 @@ import java.util.Scanner;
 public class UserMain{
     //**NOTES**
     //Any file ending with List is a holder class
+    //Json files are stored in default package or src folder
+    
+    //TO RUN ADMIN INTERFACE, RUN AdminMain.java manually
 
-    private static final File savePath = new File("src\\hotpot\\booking\\system\\Haidilao.json");
+    private static final File savePath = new File("src\\Haidilao.json");
     static final Scanner input = new Scanner(System.in);
     static String userInput, userOption; //userInput for general user input while userOption for selecting options
     static int repeatMain = 1;
@@ -27,7 +30,10 @@ public class UserMain{
     public static void main(String[] args) throws IOException{
         initData();
         
+        //bookingList.record(new Booking(userList.users.get("jer"), "a4", false, menuList.menus.get("Vegetarian"), Room.getInstance()));
+        
         //bookingList.record(new Booking(userList.users.get("coll"), "h5", false, menuList.menus.get("Seafood"), Room.getInstance()));
+        
         
         System.out.println("""
                                                         !ATTENTION DEAR USER!
@@ -110,9 +116,6 @@ public class UserMain{
                         selectedUser.editBooking(selectedUser);
                     }
                 }
-                case "6" -> {
-                    System.out.println("You are not allowed here?!");
-                }
                 case "Q", "q" -> {
                     System.out.println("Quitted\n");
                     storeData();
@@ -122,7 +125,6 @@ public class UserMain{
             }
         }while(repeatMain == 1);
     }
-    
     
     //initialize objects manually
     protected static void initObjects(){
@@ -142,13 +144,13 @@ public class UserMain{
         //initObjects(); //initialize objects because user cannot create menus or rooms
     }
     
+    
     protected static void storeData() throws IOException{
         userList.saveUsers();
         menuList.saveMenus();
         roomList.saveRooms();
         saveState();
     }
-    
     
     protected static Boolean checkUserName(String input){
         if(input.matches("^(?=[a-zA-Z0-9._]{3,20}$)(?!.*[_.]{2})[^_.].*[^_.]$")){
@@ -237,6 +239,7 @@ public class UserMain{
     //add objects into respective holder classes and check for duplicates
     private static void updateState(){
         for(Booking b: bookingList.bookings){
+            Booking marked = null;
             
             //check for user duplicates
             if(!userList.users.isEmpty()){
@@ -270,6 +273,10 @@ public class UserMain{
                 }
             }else{
                 roomList.open(b.getRoom());
+            }
+            
+            if(Booking.cal.isAfter(b.getBookedDate()) || Booking.cal.isAfter(b.getDueDate())){
+                
             }
         }
     }

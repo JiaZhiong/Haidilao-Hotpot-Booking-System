@@ -1,10 +1,18 @@
 {
+  "Shabu-Shabu" : {
+    "menuName" : "Shabu-Shabu",
+    "basePrice" : 220.0
+  },
+  "Mixed" : {
+    "menuName" : "Mixed",
+    "basePrice" : 250.0
+  },
   "Vegetarian" : {
     "menuName" : "Vegetarian",
-    "basePrice" : 150.0
+    "basePrice" : 200.0
   },
   "Seafood" : {
     "menuName" : "Seafood",
-    "basePrice" : 200.0
+    "basePrice" : 300.0
   }
 }

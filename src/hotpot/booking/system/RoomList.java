@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 @JsonRootName(value = "roomDetails")
 public class RoomList extends HashMap<Integer, Room>{
-    private static File savePath = new File("src\\hotpot\\booking\\system\\Rooms.json");
+    private static File savePath = new File("src\\Rooms.json");
     HashMap<Integer, Room> rooms;
     
     private RoomList() {

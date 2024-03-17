@@ -183,14 +183,24 @@ public class Booking{
         return room;
     }
     
+    @JsonProperty("dueDate")
+    public void setDueDate(LocalDateTime cal){
+        this.dueDateTime = cal;
+    }
+    
     @JsonGetter
     public LocalDateTime getDueDate(){
         return dueDateTime;
     }
     
-    @JsonProperty("dueDate")
+    @JsonSetter
     public void setDueDateStr(LocalDateTime cal){
         this.dueDateTimeStr = toStringDate(cal);
+    }
+    
+    @JsonProperty("bookedDate")
+    public void setBookedDate(LocalDateTime cal){
+        this.bookedDateTime = cal;
     }
     
     @JsonGetter
@@ -198,7 +208,7 @@ public class Booking{
         return bookedDateTime;
     }
     
-    @JsonProperty("bookedDate")
+    @JsonSetter
     public void setBookedDateStr(LocalDateTime cal){
         this.bookedDateTimeStr = toStringDate(cal);
     }

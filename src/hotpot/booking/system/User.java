@@ -16,18 +16,18 @@ public class User{
     static MenuList menuList = MenuList.getInstance();
     
     //constants for seat layout
-    final static int ROWS = 10;
-    final static int COLS = 12;
-    final static char OCCU = 'X';
-    final static char FREE = '*';
+    private final static int ROWS = 10;
+    private final static int COLS = 12;
+    private final static char OCCU = 'X';
+    private final static char FREE = '*';
     
     //constants for print type
-    static final char VIEW = 'v';
-    static final char FILTER = 'f';
+    private static final char VIEW = 'v';
+    private static final char FILTER = 'f';
     
     //constants for exiting operations
     static final int DEFAULT_SELECT = 1;
-    static private char[][] seatLayout = new char[ROWS][COLS];
+    private static char[][] seatLayout = new char[ROWS][COLS];
     
     static final Scanner input = new Scanner(System.in);
     
@@ -78,11 +78,25 @@ public class User{
         Boolean paySelect = false;
         
         //store objects of selection
-        Menu menuObj = null;
+        Menu menuObj = null;    
         Room roomObj = null;
         
         //loop counter
         int repeat = 1;
+        
+        if(menuList.menus.isEmpty()){
+            System.out.println("\nNo menus available for selection. Please try again later.");
+            UserMain.repeatMain = 1;
+            
+            System.out.println("");
+            return;
+        }else if(roomList.rooms.isEmpty()){
+            System.out.println("\nNo rooms available at this time. Please try again later");
+            UserMain.repeatMain = 1;
+            
+            System.out.println("");
+            return;
+        }
         
         //USER INPUT FOR SEAT SELECTION
         do{
@@ -402,7 +416,7 @@ public class User{
         UserMain.repeatMain = 1;
     }
     
-    public double payBooking(Menu m, Room r) {
+    private double payBooking(Menu m, Room r) {
         return (m.getBasePrice() + r.getBasePrice());
     }
 

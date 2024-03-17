@@ -107,6 +107,8 @@ public class Admin {
                    input.nextLine();
                 }
             }
+            
+            repeat = 0;
         }while(repeat == 1);
         
         menuList.record(nameSelect.trim(), new Menu(nameSelect, priceSelect));
@@ -141,7 +143,7 @@ public class Admin {
                 menuList.drop(menuSelect);
                 menuList.saveMenus();
                 repeat = 0;
-                return;
+                adminMenu();
             }else{
                 System.out.println("Could not find any menu package with the name '" + menuSelect + "'.");
                 menuSelect = "";
@@ -362,6 +364,7 @@ public class Admin {
         }while(repeat == 1);
     }
     
+    //ADMIN OPERATIONS FOR USER
     protected static void adminUser() throws IOException{
         int repeatUser = 1;
         

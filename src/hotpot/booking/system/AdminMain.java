@@ -14,7 +14,6 @@ public class AdminMain extends UserMain{
                                   Welcome to the Admin Dashboard!
                                1. View Menus          2. View Rooms
                                3. View Bookings       4. View Users
-                               5. Notify Users
                                              Q. Quit""");
             adminOption = input.next();
             

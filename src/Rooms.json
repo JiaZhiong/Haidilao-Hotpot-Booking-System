@@ -1,22 +1,27 @@
 {
-  "9424" : {
-    "roomNumber" : 9424,
+  "3607" : {
+    "roomNumber" : 3607,
+    "pax" : 8,
+    "basePrice" : 95.0
+  },
+  "8986" : {
+    "roomNumber" : 8986,
+    "pax" : 6,
+    "basePrice" : 70.0
+  },
+  "9851" : {
+    "roomNumber" : 9851,
     "pax" : 12,
-    "basePrice" : 475.0
-  },
-  "10000" : {
-    "roomNumber" : 10000,
-    "pax" : 8,
-    "basePrice" : 100.0
-  },
-  "6005" : {
-    "roomNumber" : 6005,
-    "pax" : 8,
-    "basePrice" : 350.0
-  },
-  "2294" : {
-    "roomNumber" : 2294,
-    "pax" : 5,
     "basePrice" : 120.0
+  },
+  "4206" : {
+    "roomNumber" : 4206,
+    "pax" : 4,
+    "basePrice" : 60.0
+  },
+  "4527" : {
+    "roomNumber" : 4527,
+    "pax" : 2,
+    "basePrice" : 55.0
   }
 }
