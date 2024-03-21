@@ -48,7 +48,7 @@ public class UserMain{
 
             switch(userOption){
                 case "1" -> {
-                    System.out.println("[Make sure your user name has at lesat 3 or less than 20 characters & no symbols except _ but ONLY BETWEEN characters]\nPlease enter a user name: ");
+                    System.out.println("[Make sure your user name has at least 3 or less than 20 characters & no symbols except _ but ONLY BETWEEN characters]\nPlease enter a user name: ");
                     Boolean valid = false; //status of whether userInput can be registered into system
                     while(!valid){
                         userInput = input.next().trim();
@@ -239,13 +239,11 @@ public class UserMain{
     //add objects into respective holder classes and check for duplicates
     private static void updateState(){
         for(Booking b: bookingList.bookings){
-            Booking marked = null;
             
             //check for user duplicates
             if(!userList.users.isEmpty()){
                 if(userList.users.containsKey(b.getUser().getName())){
                     b.setUser(userList.users.get(b.getUser().getName()));
-                    break;
                 }else{
                     userList.register(b.getUser().getName(), b.getUser());
                 }
@@ -273,10 +271,6 @@ public class UserMain{
                 }
             }else{
                 roomList.open(b.getRoom());
-            }
-            
-            if(Booking.cal.isAfter(b.getBookedDate()) || Booking.cal.isAfter(b.getDueDate())){
-                
             }
         }
     }

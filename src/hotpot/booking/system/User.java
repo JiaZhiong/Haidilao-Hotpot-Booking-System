@@ -66,8 +66,8 @@ public class User{
                 resetSeat(seat);
             }
             
-            if(seatLayout[getRowNumber(Character.toString(seat.charAt(0)))][Integer.parseInt(seat.substring(1))] != OCCU){
-                seatLayout[getRowNumber(Character.toString(seat.charAt(0)))][Integer.parseInt(seat.substring(1))] = OCCU;
+            if(seatLayout[getRowNumber(Character.toString(seat.charAt(0)))][Integer.parseInt(seat.substring(1)) - 1] != OCCU){
+                seatLayout[getRowNumber(Character.toString(seat.charAt(0)))][Integer.parseInt(seat.substring(1)) - 1] = OCCU;
             }
         }
     }
@@ -118,11 +118,11 @@ public class User{
                 do{
                     System.out.println("Please select column [1-12]: ");
                     colSelect = input.nextInt();
-                    if(colSelect < UserMain.CANCEL_INT){
+                    if(colSelect == 0){
                         UserMain.repeatMain = 1;
                         return;
                     }
-                }while(colSelect < 1 || colSelect > 12);
+                }while(colSelect < 0 || colSelect > 12);
             }catch(InputMismatchException e){
                 System.out.println("\nInput not recognized as seat selection. Please enter again:");
                 input.nextLine();
@@ -303,44 +303,55 @@ public class User{
                     char rowSelect = Character.MIN_VALUE;
                     int colSelect = -1;
                     
+                    int repeatSelect = 1;
+                    String select = null;
+                    
                     System.out.println("Select a new seat number: ");
+                    fillArrayDefaultVal();
                     displaySeatLayout();
                     
-                    try{
-                        do{
-                            System.out.println("Please select row [A-J]: ");
-                            rowSelect = Character.toLowerCase(input.next().charAt(0));
-                            if(rowSelect == '0'){
-                                UserMain.repeatMain = 1;
-                                return;
-                            }
-                        }while(rowSelect < 'a' || rowSelect > 'j');
+                    while(repeatSelect == 1){
+                        try{
+                            do{
+                                System.out.println("Please select row [A-J]: ");
+                                rowSelect = Character.toLowerCase(input.next().charAt(0));
+                                if(rowSelect == '0'){
+                                    UserMain.repeatMain = 1;
+                                    return;
+                                }
+                            }while(rowSelect < 'a' || rowSelect > 'j');
 
-                        do{
-                            System.out.println("Please select column [1-12]: ");
-                            colSelect = input.nextInt() - 1;
-                            if(colSelect < UserMain.CANCEL_INT){
-                                UserMain.repeatMain = 1;
-                                return;
-                            }
-                        }while(colSelect < 0 || colSelect > 11 );
-                    }catch(InputMismatchException e){
-                        System.out.println("\nInput not recognized as seat selection. Please enter again:");
-                        input.nextLine();
-                    }
-                    
-                    String select = String.valueOf(rowSelect);
-                    select = select.concat(Integer.toString(colSelect));
-                    
-                    resetSeat(selectedBooking.getSeatId()); //reset old seat first
-                    
-                    String newSeat = updateSeat(select); //assign new seat
-                    if(newSeat != null){
-                        selectedBooking.setSeatId(newSeat);
+                            do{
+                                System.out.println("Please select column [1-12]: ");
+                                colSelect = input.nextInt();
+                                if(colSelect == 0){
+                                    UserMain.repeatMain = 1;
+                                    return;
+                                }
+                            }while(colSelect < 0 || colSelect > 12);
+                        }catch(InputMismatchException e){
+                            System.out.println("\nInput not recognized as seat selection. Please enter again:");
+                            input.nextLine();
+                        }
+                        
+                        select = String.valueOf(rowSelect); //convert char to string
+                        select = select.concat(Integer.toString(colSelect)); //convert integer to string
+                        
+                        String oldSeat = selectedBooking.getSeatId();
+                        String newSeat = updateSeat(select);
+                        if(newSeat != null){
+                            //assign new seat
+                            selectedBooking.setSeatId(newSeat);
+
+                            //reset old seat
+                            resetSeat(oldSeat);
+                            repeatSelect = 0;
+                        }
                     }
                     
                     repeatEditing = 0;
                     UserMain.repeatMain = 1;
+                    UserMain.saveState();
                 }
                 case "4" -> {
                     System.out.println("\nSelect a user to transfer booking to: ");
@@ -360,6 +371,7 @@ public class User{
                                 repeatConfirm = false;
                                 u.transferBooking(u, newUser, selectedBooking);
                                 repeatEditing = 0;
+                                UserMain.saveState();
                             }
                             case "no" -> {
                                 repeatConfirm = false;
@@ -387,7 +399,7 @@ public class User{
     }
     
     
-    public void cancelBooking(User u, Booking b) {
+    public void cancelBooking(User u, Booking b) throws IOException {
         boolean repeatConfirm = true;
         String confirm;
         System.out.println("Paid bookings will not be refunded!\nAre you sure? Enter yes to confirm or no to cancel>>");
@@ -397,6 +409,7 @@ public class User{
                 case "yes" -> {
                     repeatConfirm = false;
                     repeatEditing = 0;
+                    UserMain.saveState();
                 }
                 case "no" -> {
                     repeatConfirm = false;
@@ -575,14 +588,14 @@ public class User{
         }
         
         int rowInt = getRowNumber(Character.toString(seat.charAt(0)));
-        int colInt = Integer.parseInt(seat.substring(1)) - 1;
+        int colInt = Integer.parseInt(seat.substring(1));
         
-        if(seatLayout[rowInt][colInt] == OCCU){
-            System.out.println("\nThis seat is occupied! Please select another");
+        if(seatLayout[rowInt][colInt - 1] == OCCU){
+            System.out.println("\nThis seat is unavailable! Please select another");
             return null;
         }
         
-        seatLayout[rowInt][colInt] = OCCU;
+        seatLayout[rowInt][colInt - 1] = OCCU;
         return seat;
     }
     
@@ -592,9 +605,9 @@ public class User{
         }
         
         int rowInt = getRowNumber(Character.toString(seat.charAt(0)));
-        int colInt = Integer.parseInt(seat.substring(1)) - 1;
+        int colInt = Integer.parseInt(seat.substring(1));
         
-        seatLayout[rowInt][colInt] = FREE;
+        seatLayout[rowInt][colInt - 1] = FREE;
         System.out.println("Seat reset successful!\n");
     }
     

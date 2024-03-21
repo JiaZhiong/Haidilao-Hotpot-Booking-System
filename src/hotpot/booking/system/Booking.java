@@ -1,6 +1,7 @@
 package hotpot.booking.system;
 
 import com.fasterxml.jackson.annotation.*;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
@@ -58,7 +59,7 @@ public class Booking{
         }
     }
 
-    public void setMenuPkg(User u) {
+    public void setMenuPkg(User u) throws IOException {
         int repeat = 1;
         
         do{
@@ -96,6 +97,7 @@ public class Booking{
                 repeat = 0;
                 UserMain.repeatMain = 1;
                 System.out.println("\nChanges saved successfully!");
+                UserMain.saveState();
             }else{
                 return;
             }
@@ -105,7 +107,7 @@ public class Booking{
         User.repeatEditing = 1;
     }
     
-    public void setRoomPkg(User u) {
+    public void setRoomPkg(User u) throws IOException {
         int repeat = 1;
         
         do{
@@ -129,7 +131,7 @@ public class Booking{
                         UserMain.repeatMain = 1;
                         return;
                     }else if(select == this.room.getRoomNumber()){
-                        System.out.println("\nThis menu is unavailable, " + select + " is already your room package. Please choose another room.");
+                        System.out.println("\nThis room is unavailable, " + select + " is already your room package. Please choose another room.");
                         select = User.DEFAULT_SELECT;
                     }
                 }catch(InputMismatchException e){
@@ -144,6 +146,7 @@ public class Booking{
                 repeat = 0;
                 UserMain.repeatMain = 1;
                 System.out.println("\nChanges saved successfully!");
+                UserMain.saveState();
             }else{
                 return;
             }
@@ -188,7 +191,7 @@ public class Booking{
         this.dueDateTime = cal;
     }
     
-    @JsonGetter
+    @JsonProperty("dueDate")
     public LocalDateTime getDueDate(){
         return dueDateTime;
     }
@@ -203,7 +206,7 @@ public class Booking{
         this.bookedDateTime = cal;
     }
     
-    @JsonGetter
+    @JsonProperty("bookedDate")
     public LocalDateTime getBookedDate(){
         return bookedDateTime;
     }
@@ -241,16 +244,19 @@ public class Booking{
     public String toString(char type){
         switch(type){
             case 'f' -> {
-                return "\n\tMenu: " + this.menu.getMenuName() + "\n\tSeat Number: " + this.seatId + "\n\tRoom Number: " + this.room.getRoomNumber() + "\n\tDate & Time of Booking: " + this.bookedDateTimeStr + 
-                    "\n\tPayment Due Date: " + this.dueDateTimeStr;
+                return "\n\tMenu: " + this.menu.getMenuName() + "\n\tSeat Number: " + this.seatId + "\n\tRoom Number: " + this.room.getRoomNumber() + 
+                    "\n\tDate & Time of Booking: " + ((this.bookedDateTimeStr == null) ? toStringDate(bookedDateTime) : this.bookedDateTimeStr) + 
+                    "\n\tPayment Due Date: " + ((this.dueDateTimeStr == null) ? toStringDate(dueDateTime) : this.dueDateTimeStr);
             }
             case 'v' -> {
-                return "\n\tMenu: " + this.menu.getMenuName() + "\n\tSeat Number: " + this.seatId + "\n\tRoom Number: " + this.room.getRoomNumber() + "\n\tDate & Time of Booking: " + this.bookedDateTimeStr + 
-                    "\n\tPayment Due Date: " + ((this.dueDateTimeStr == null) ? "N/A" : this.dueDateTimeStr) + "\n\tPaid: " + ((this.paid) ? "Yes" : "No");
+                return "\n\tMenu: " + this.menu.getMenuName() + "\n\tSeat Number: " + this.seatId + "\n\tRoom Number: " + this.room.getRoomNumber() + 
+                    "\n\tDate & Time of Booking: " + ((this.bookedDateTimeStr == null) ? toStringDate(bookedDateTime) : bookedDateTimeStr) + 
+                    "\n\tPayment Due Date: " + ((this.dueDateTimeStr == null) ? toStringDate(dueDateTime) : this.dueDateTimeStr) + "\n\tPaid: " + ((this.paid) ? "Yes" : "No");
             }
             case 'a' -> {
-                return "\n\tUser: " + this.user.getName() + "\n\tSeat Number: " + this.seatId + "\n\tMenu: " + this.menu.getMenuName() + "\n\tRoom Number: " + this.room.getRoomNumber() + "\n\tDate & Time of Booking: " + this.bookedDateTimeStr + 
-                    "\n\tPayment Due Date: " + ((this.dueDateTimeStr == null) ? "N/A" : this.dueDateTimeStr) + "\n\tPaid: " + ((this.paid) ? "Yes" : "No");
+                return "\n\tUser: " + this.user.getName() + "\n\tSeat Number: " + this.seatId + "\n\tMenu: " + this.menu.getMenuName() + 
+                    "\n\tRoom Number: " + this.room.getRoomNumber() + "\n\tDate & Time of Booking: " + ((this.bookedDateTimeStr == null) ? toStringDate(bookedDateTime) : bookedDateTimeStr) + 
+                    "\n\tPayment Due Date: " + ((this.dueDateTimeStr == null) ? toStringDate(dueDateTime) : this.dueDateTimeStr) + "\n\tPaid: " + ((this.paid) ? "Yes" : "No");
             }
             default -> {
                 return null;
